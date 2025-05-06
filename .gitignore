@@ -23,7 +23,7 @@ dist/
 dietnb_imgs/
 
 # Cursor specific
-.cursor/
+# .cursor/ # Temporarily allow tracking for rule.md, or decide to track it permanently
 
 # Operating System generated files
 .DS_Store

@@ -1,4 +1,4 @@
-# **`dietnb` (v0.1.0) — "Notebook 비만" 즉시 해소 패키지**
+# **`dietnb` (v0.1.1) — "Notebook 비만" 즉시 해소 패키지**
 
 > **문제 의식**  
 > * `matplotlib` Figure가 Base-64로 .ipynb 안에 저장 → 노트북 용량 MB ↗︎↗︎  
