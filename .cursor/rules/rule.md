@@ -1,4 +1,4 @@
-# **`dietnb` (v0.1.0) — “Notebook 비만” 즉시 해소 패키지**
+# **`dietnb` (v0.1.0) — "Notebook 비만" 즉시 해소 패키지**
 
 > **문제 의식**  
 > * `matplotlib` Figure가 Base-64로 .ipynb 안에 저장 → 노트북 용량 MB ↗︎↗︎  
@@ -109,12 +109,12 @@ dev = [
 
 ---
 
-## 5. 배포
+## 5. 배포 (진행 중)
 
 ```bash
-python -m pip install --upgrade build twine
-python -m build              # dist/ 디렉터리 생성
-twine upload dist/*          # PyPI 업로드
+python -m pip install --upgrade build twine  # ➊ 빌드 도구 설치 (완료)
+python -m build                            # ➋ dist/ 디렉터리 생성 (완료)
+twine upload dist/*                        # ➌ PyPI 업로드 (진행 예정)
 ```
 
 ---
@@ -139,14 +139,19 @@ for i in range(3):
 
 ## 7. 현재 상태 및 로드맵
 
-### 현재 상태 (v0.1.0 기준)
+### 현재 상태 (v0.1.0 기준) - 배포 직전
 *   **핵심 기능 구현 완료:** Matplotlib 그림 외부 저장 및 링크 기능 정상 작동.
 *   **설치 및 자동 활성화 구현:** `pip install dietnb` 및 `dietnb install` 통한 설치 및 자동 시작 스크립트 등록 완료.
 *   **수동 활성화 구현:** `%load_ext dietnb` 및 `dietnb.activate()` 작동.
 *   **이미지 정리 기능 구현:** `dietnb.clean_unused()` 함수 구현 완료.
 *   **기본 패키지 구조 완료:** `pyproject.toml` 기반 패키징 및 CLI 설정 완료.
+*   **라이선스 파일 추가 완료:** `LICENSE` (MIT) 파일 추가.
+*   **소스 코드 GitHub 푸시 완료:** `https://github.com/JinLover/dietnb` 에 소스 코드 게시.
+*   **패키지 빌드 완료:** `dist/` 폴더에 배포용 파일 생성 완료.
 
 ### 미구현 및 다음 단계
+*   **PyPI 업로드:** `twine upload dist/*` 실행.
+*   **`pyproject.toml` 라이선스 형식 업데이트:** `project.license` 테이블 형식 사용에 대한 `setuptools` 경고 해결.
 *   **자동화 테스트:** `tests/` 디렉토리 및 `pytest` 설정은 되어 있으나, 상세 테스트 케이스 작성 필요.
 *   **JupyterLab/VS Code UI:** `dietnb_js` 구현 필요 (Toolbar 버튼, Command Palette 연동).
 *   **로드맵 v0.2 이상:** nbconvert 플러그인, Classic Notebook 지원, JupyterLite 호환 등.
