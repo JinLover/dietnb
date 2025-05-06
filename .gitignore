@@ -1,6 +1,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 *$py.class
 
 # C extensions
@@ -53,12 +55,9 @@ coverage.xml
 # Environments
 .env
 .venv
-.cursor
+cursor/
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -83,4 +82,11 @@ dmypy.json
 .vscode/
 
 # DietNB specific
-dietnb_imgs/ 
+dietnb_imgs/
+
+# Cursor specific
+.cursor/
+
+# Operating System files
+.DS_Store
+Thumbs.db 
