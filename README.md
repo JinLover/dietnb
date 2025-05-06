@@ -1,141 +1,170 @@
-# **`dietnb` (v0.1.0) — "Notebook 비만" 즉시 해소 패키지**
+# **`dietnb` (v0.1.0) — Instant Relief for "Notebook Obesity"**
 
-> **문제 의식**  
-> * `matplotlib` Figure가 Base-64로 .ipynb 안에 저장 → 노트북 용량 MB ↗︎↗︎  
-> * 캐시·누적된 Figure가 메모리까지 잠식  
-> * 매 실행마다 `plt.close`, `nbstripout` … 귀찮다  
+> **The Problem**
+> * `matplotlib` Figures saved as Base64 in `.ipynb` → Notebook size (MB) ↗︎↗︎
+> * Cached/accumulated Figures consume memory
+> * Annoying to run `plt.close`, `nbstripout` every time
 
-**`dietnb`** 는 **"그림은 디스크, 노트북은 링크"** 설계를 *자동* 적용해, 설치만으로 .ipynb 를 거의 **0 바이트**로 유지한다.
-
----
-
-## 0. 핵심 규칙 (설계 원칙)
-
-| # | 규칙 | 구현 포인트 |
-|---|---|----|
-| 1 | **ipynb 내부에 이미지 바이트 0** | `Figure._repr_png_ = None` (PNG 임베드 차단) |
-| 2 | **셀마다 고유 prefix** | `cellId`(+ SHA-1 fallback) |
-| 3 | **셀 재실행 → 기존 PNG 전부 삭제** | `_state[key] != exec_id` 체크 |
-| 4 | **한 셀 안 여러 그림 → `_1,_2,…`** | `glob(f"{key}_*.png")` 갯수로 인덱스 |
-| 5 | **브라우저 캐시 무효** | `<img …?v=exec_id>` |
-| 6 | **첫 Figure부터 적용** | `_repr_html_` 직접 오버라이드 |
-| 7 | **백엔드 재등록 방어** | `post_run_cell` 마다 패치 재주입 |
+**`dietnb`** automatically applies a **"Figures on disk, links in notebook"** design, keeping your `.ipynb` files almost **0 bytes** with just installation.
 
 ---
 
-## 1. 빠른 사용
+## 0. Core Rules (Design Principles) - Implemented
+
+| # | Rule                                      | Implementation Point                               |
+|---|-------------------------------------------|----------------------------------------------------|
+| 1 | **Zero image bytes inside ipynb**         | `Figure._repr_png_ = None` (Block PNG embedding)   |
+| 2 | **Unique prefix per cell**                | `cellId` (+ SHA-1 fallback)                        |
+| 3 | **Rerun cell → Delete all previous PNGs** | `_state[key] != exec_id` check                     |
+| 4 | **Multiple figures in one cell → `_1,_2,…`** | Index by `glob(f"{key}_*.png")` count             |
+| 5 | **Browser cache invalidation**            | `<img …?v=exec_id>`                               |
+| 6 | **Apply from the first Figure**           | Direct override of `_repr_html_`                   |
+| 7 | **Prevent backend re-registration issues**| Re-inject patch on `post_run_cell`                 |
+
+---
+
+## 1. Quick Start
 
 ```bash
-pip install dietnb                 # ➊ 설치
-dietnb install                     # ➋ 자동 스타트업·UI 버튼 등록
+pip install dietnb                 # ➊ Install
+dietnb install                     # ➋ Register automatic startup script
 ```
 
-*설치만으로 어떤 노트북이든 즉시 적용.*
+*After running `dietnb install` and restarting the kernel, it applies automatically to any notebook.*
 
-> **수동 모드** — 스타트업을 건드리고 싶지 않다면  
-> `import dietnb; dietnb.activate()` **또는** `%load_ext dietnb` 한 줄로 충분.
-
----
-
-## 2. 추가 기능 — "Clean Images" 버튼
-
-| UI | 기능 |
-|----|---|
-| 🗑 Toolbar 버튼 | **현재 커널에 로드되지 않은 PNG** 일괄 삭제 |
-| Command Palette `DietNB: Clean Images` | 동일 기능 (단축키 배정 가능) |
-
-Jupyter Lab / VS Code 확장(`dietnb_js`)이 버튼 → 커널 RPC 로 `dietnb.clean_unused()`를 호출.
+> **Manual Mode** — If you don't want to use or failed with automatic startup setup:
+> Run `import dietnb; dietnb.activate()` **or** `%load_ext dietnb` at the beginning of your notebook.
 
 ---
 
-## 3. 패키지 구조
+## 2. Additional Feature — "Clean Images" Button
+
+| UI                                     | Function                                                  |
+|----------------------------------------|-----------------------------------------------------------|
+| 🗑 Toolbar Button                      | Bulk delete PNGs **not loaded in the current kernel** (`dietnb_js` required, **Not Implemented**) |
+| Command Palette `DietNB: Clean Images` | Same function (`dietnb_js` required, **Not Implemented**) |
+| **Python Function**                    | Call `dietnb.clean_unused()` (**Implemented**)            |
+
+*Currently, you can use this feature by calling `dietnb.clean_unused()` directly in a notebook cell.*
+
+---
+
+## 3. Package Structure (Implemented)
 
 ```
 dietnb/
 ├─ dietnb
-│  ├─ __init__.py         # activate(), clean_unused()
-│  ├─ _core.py            # Figure ↔ HTML 로직
-│  ├─ _startup.py         # sitecustomize용 스타트업 코드
-│  └─ _ipython.py         # load_ipython_extension
-├─ dietnb_js/             # Lab/VSC UI (선택)
-├─ tests/
-├─ README.md
+│  ├─ __init__.py         # Public API: activate(), deactivate(), clean_unused()
+│  ├─ _core.py            # Core logic for saving/linking Figures, state management
+│  ├─ _startup.py         # IPython startup script content copied by `dietnb install`
+│  ├─ _ipython.py         # Implements `%load_ext dietnb`
+│  └─ _cli.py             # Logic for `dietnb install` command (main function)
+├─ dietnb_js/             # Lab/VSC UI (Optional, **Not Implemented**)
+├─ tests/                 # Automated tests (pytest, **Basic setup only**)
+├─ README.md              # This file (English)
+├─ README_ko.md           # Korean version of README
 └─ pyproject.toml
 ```
 
-### `_core.activate()` 주요 흐름
+### `_core.activate()` Main Flow (Implemented)
 
 ```python
 def activate(folder="dietnb_imgs"):
     ip = get_ipython()                            # ①
-    ip.display_formatter.formatters['image/png'].enabled = False
-    Figure._repr_png_  = lambda self: None        # ② PNG 임베드 완전 차단
-    Figure._repr_html_ = lambda f: _save_link(f, ip, folder)
-    ip.events.register('post_run_cell', _close_and_repatch)
+    ip.display_formatter.formatters['image/png'].enabled = False # Disable PNG formatter
+    Figure._repr_png_  = lambda self: None        # ② Completely block PNG embedding
+    Figure._repr_html_ = lambda fig: _save_figure_and_get_html(fig, ip) # ③ Connect HTML generation logic
+    # ④ Register handler for post-cell cleanup and re-patching (modified to accept IPython event args)
+    ip.events.register('post_run_cell', _post_cell_cleanup_and_repatch_handler)
 ```
-
-`_save_link()` : 앞서 합의된 최종 코드(폴더 `mkdir(parents=True)` 포함).
 
 ---
 
-## 4. `pyproject.toml` 핵심
+## 4. `pyproject.toml` Core (Implemented)
 
 ```toml
 [project]
 name            = "dietnb"
 version         = "0.1.0"
 description     = "Save matplotlib figures as external files and link them, keeping notebooks tiny."
-readme          = "README.md"
+readme          = "README.md" # Points to this English README
 license         = {text = "MIT"}
-authors         = [{name = "Taeyong Park"}]
+authors         = [{name = "JinLover"}]
 requires-python = ">=3.8"
 dependencies    = ["ipython>=8", "matplotlib>=3.5"]
 
 [project.scripts]
-dietnb = "dietnb._cli:main"         # python -m dietnb install
+dietnb = "dietnb._cli:main"         # Creates `dietnb` command -> links to _cli.main
+
+[tool.setuptools.packages.find]
+# Specify where to find package code (inside 'dietnb' directory under project root)
+where = ["dietnb"]
+
+[project.optional-dependencies]
+# Dependencies for development and testing (`pip install -e '.[dev]'`)
+dev = [
+    "pytest>=7.0",
+    "pytest-mock>=3.10"
+]
 ```
 
 ---
 
-## 5. 배포
+## 5. Deployment (Completed)
 
 ```bash
-python -m pip install --upgrade build twine
-python -m build              # dist/ 디렉터리 생성
-twine upload dist/*
+python -m pip install --upgrade build twine  # ➊ Install build tools (Completed)
+python -m build                            # ➋ Create dist/ directory (Completed)
+twine upload dist/*                        # ➌ Upload to PyPI (Completed)
 ```
 
 ---
 
-## 6. 사용 예
+## 6. Usage Example (Confirmed Working)
 
 ```python
-import numpy as np, matplotlib.pyplot as plt
-# dietnb 설치 후엔 별다른 설정 없이 자동 적용
+# After running `dietnb install` and restarting the kernel, or after manual activation:
+import numpy as np
+import matplotlib.pyplot as plt
 
 for i in range(3):
     plt.plot(np.linspace(0, 100), np.sin(np.linspace(0, 10) + i))
-    plt.show()
+    plt.show() # Automatically saves to dietnb_imgs/ folder and outputs a link
 ```
 
-* ipynb 증가량 ≈ 120 bytes  
-* `dietnb_imgs/<hash>_{1,2,3}.png` 생성  
-* "Clean Images" → 다른 셀의 PNG 즉시 정리
+*   ipynb size increase ≈ 120 bytes
+*   `dietnb_imgs/<hash>_{1,2,3}.png` created
+*   Calling `dietnb.clean_unused()` after running other cells can clean up images from previous cells
 
 ---
 
-## 7. 로드맵
+## 7. Current Status & Roadmap
 
-| 버전 | 기능 |
-|---|---|
-| 0.2  | nbconvert 플러그인 – HTML/PDF 내보낼 때 이미지 자동 복사 |
-| 0.3  | Classic Notebook 6.x(셀 ID 없음) JS shim |
-| 1.0  | JupyterLite / Pyodide 호환, VS Code WebView API 안정화 |
+### Current Status (as of v0.1.0) - PyPI Deployment Completed
+*   **Core Functionality Implemented:** External saving of Matplotlib figures and linking works correctly.
+*   **Installation & Auto-activation Implemented:** Installation via `pip install dietnb` and auto-start script registration via `dietnb install` completed.
+*   **Manual Activation Implemented:** `%load_ext dietnb` and `dietnb.activate()` work.
+*   **Image Cleanup Functionality Implemented:** `dietnb.clean_unused()` function completed.
+*   **Basic Package Structure Completed:** Packaging based on `pyproject.toml` and CLI setup completed.
+*   **License File Added:** `LICENSE` (MIT) file added.
+*   **Source Code Pushed to GitHub:** Source code published at `https://github.com/JinLover/dietnb`.
+*   **Package Built:** Distribution files created in `dist/` folder.
+*   **PyPI Deployment Completed:** v0.1.0 registered on PyPI ([https://pypi.org/project/dietnb/0.1.0/](https://pypi.org/project/dietnb/0.1.0/))
+
+### Not Implemented & Next Steps
+*   **Update `pyproject.toml` license format:** Resolve `setuptools` warning about `project.license` table format.
+*   **Automated Tests:** `tests/` directory and `pytest` setup exist, but detailed test cases need to be written.
+*   **JupyterLab/VS Code UI:** `dietnb_js` needs implementation (Toolbar button, Command Palette integration).
+*   **Roadmap v0.2 and beyond:** nbconvert plugin, Classic Notebook support, JupyterLite compatibility, etc.
 
 ---
 
-## 8. 라이선스 / 크레딧
+## 8. License / Credits
 
-*MIT.*  
-아이디어·초기 코드 : **Taeyong Park × ChatGPT**  
-Issue / PR 환영. 
+*MIT.*
+Idea & Initial Code: **JinLover × ChatGPT**
+Current Development: **Cursor AI (Gemini)**
+Issues / PRs welcome.
+
+---
+[한국어 README (Korean README)](README_ko.md) 
