@@ -27,7 +27,7 @@
 
 ```bash
 pip install dietnb                 # ➊ 설치
-python -m dietnb install           # ➋ 자동 스타트업·UI 버튼 등록
+dietnb install                     # ➋ 자동 스타트업·UI 버튼 등록
 ```
 
 *설치만으로 어떤 노트북이든 즉시 적용.*

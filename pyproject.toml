@@ -13,7 +13,7 @@ requires-python = ">=3.8"
 dependencies    = ["ipython>=8", "matplotlib>=3.5"]
 
 [project.scripts]
-dietnb = "dietnb._cli:main"
+dietnb = "dietnb._cli:main"         # Creates the 'dietnb' command
 
 [project.urls]
 Homepage = "https://github.com/your_github_username/dietnb" # TODO: Replace with actual URL
