@@ -148,7 +148,7 @@ for i in range(3):
 *   **라이선스 파일 추가 완료:** `LICENSE` (MIT) 파일 추가.
 *   **소스 코드 GitHub 푸시 완료:** `https://github.com/JinLover/dietnb` 에 소스 코드 게시.
 *   **패키지 빌드 완료:** `dist/` 폴더에 배포용 파일 생성 완료.
-*   **PyPI 배포 완료:** v0.1.0 PyPI 등록 ([https://pypi.org/project/dietnb/0.1.0/](https://pypi.org/project/dietnb/0.1.0/))
+*   **PyPI 배포 완료:** v0.1.1 PyPI 등록 ([https://pypi.org/project/dietnb/0.1.1/](https://pypi.org/project/dietnb/0.1.1/))
 
 ### 미구현 및 다음 단계
 *   **`pyproject.toml` 라이선스 형식 업데이트:** `project.license` 테이블 형식 사용에 대한 `setuptools` 경고 해결.
