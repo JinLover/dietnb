@@ -18,5 +18,14 @@ dietnb = "dietnb._cli:main"
 [project.urls]
 Homepage = "https://github.com/your_github_username/dietnb" # TODO: Replace with actual URL
 
+# Removed package-dir section
+
 [tool.setuptools.packages.find]
-where = ["."] 
+# Tell find to look *inside* the 'dietnb' directory for packages
+where = ["dietnb"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-mock>=3.10"
+] 
