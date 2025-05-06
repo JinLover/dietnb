@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "dietnb"
+version         = "0.1.0"
+description     = "Save matplotlib figures as external files and link them, keeping notebooks tiny."
+readme          = "README.md"
+license         = {text = "MIT"}
+authors         = [{name = "Taeyong Park"}]
+requires-python = ">=3.8"
+dependencies    = ["ipython>=8", "matplotlib>=3.5"]
+
+[project.scripts]
+dietnb = "dietnb._cli:main"
+
+[project.urls]
+Homepage = "https://github.com/your_github_username/dietnb" # TODO: Replace with actual URL
+
+[tool.setuptools.packages.find]
+where = ["."] 
