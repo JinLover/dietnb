@@ -37,7 +37,7 @@ def activate(folder="dietnb_imgs"):
             pass # Ignore if not registered
 
     # Define the handler using the current ip instance
-    def handler():
+    def handler(_):
         _core._post_cell_cleanup_and_repatch(ip)
 
     _post_run_cell_handler = handler # Store reference for potential unregistering
