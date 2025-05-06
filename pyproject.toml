@@ -8,7 +8,7 @@ version         = "0.1.0"
 description     = "Save matplotlib figures as external files and link them, keeping notebooks tiny."
 readme          = "README.md"
 license         = {text = "MIT"}
-authors         = [{name = "Taeyong Park"}]
+authors         = [{name = "JinLover"}]
 requires-python = ">=3.8"
 dependencies    = ["ipython>=8", "matplotlib>=3.5"]
 
