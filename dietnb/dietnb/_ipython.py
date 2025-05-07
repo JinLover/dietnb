@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 def load_ipython_extension(ipython):
     """Registers the activate function when the extension is loaded."""
     logger.debug("Loading dietnb IPython extension...")
-    activate(ipython)
+    activate(ipython_instance=ipython)
     print("dietnb extension loaded. Matplotlib figures will be saved externally.")
 
 def unload_ipython_extension(ipython):
