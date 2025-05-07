@@ -3,56 +3,80 @@
 [![PyPI version](https://badge.fury.io/py/dietnb.svg)](https://badge.fury.io/py/dietnb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`dietnb` automatically saves `matplotlib` figures as local PNG files and embeds `<img>` links in Jupyter notebooks. This prevents base64 image embedding, significantly reducing `.ipynb` file sizes.
+`dietnb` addresses the issue of large `.ipynb` file sizes caused by `matplotlib` figures being embedded as Base64 data. By saving plots as external PNG files and embedding only image links, `dietnb` keeps your notebooks lightweight and improves manageability.
 
 ---
 
 ## Key Features
 
-*   **Reduces Notebook Size:** Stores images externally in a `{notebook_filename}_dietnb_imgs/` directory next to the notebook, keeping `.ipynb` files small.
-*   **Automatic Cleanup:** Deletes images from a cell's previous execution when the cell is re-run.
-*   **Manual Cleanup:** Provides `dietnb.clean_unused()` to remove image files no longer referenced by the current kernel session.
+*   **Minimized Notebook Size:** Significantly reduces `.ipynb` file bulk by storing `matplotlib` figures as external PNG files.
+*   **Automatic Image Folder Management:** Creates and manages image storage directories (e.g., `[NotebookFileName]_dietnb_imgs`) relative to the notebook's location. (Applies when path detection is successful, e.g., in VS Code; defaults to `dietnb_imgs` in the current working directory if detection fails.)
+*   **Automatic Image Updates:** When a notebook cell is re-executed, image files generated from its previous run are automatically deleted, ensuring only the latest output is retained.
+*   **Image Cleanup Function:** The `dietnb.clean_unused()` function allows easy removal of unreferenced image files from the current session.
+*   **Simple Auto-Activation:** The `dietnb install` command configures `dietnb` to activate automatically when IPython and Jupyter environments start.
 
-## Quick Start
+---
 
-1.  **Install:**
-    ```bash
-    pip install dietnb
-    ```
-2.  **Activate:**
-    You have two main options:
+## Installation and Activation
 
-    *   **Automatic Activation (Recommended):** Run `dietnb install` once in your terminal. After restarting your Jupyter kernel, `dietnb` will activate automatically in all sessions. It will try to save images to a notebook-specific folder (e.g., `MyNotebook_dietnb_imgs`) or fall back to `dietnb_imgs`.
+**1. Install the `dietnb` package**
 
-    *   **Manual Activation (Per Notebook):** Add the following to the top of your notebook if you prefer to activate `dietnb` manually:
-        ```python
-        import dietnb
-        dietnb.activate()
-        ```
+Execute the following command in your terminal:
+```bash
+pip install dietnb
+```
 
-That's it! `matplotlib` figures will now be saved externally.
+**2. Choose an Activation Method**
 
-*(The `dietnb install` command handles automatic activation. Manual activation is an alternative.)*
+   **A. Automatic Activation (Recommended)**
+   Run the following command in your terminal once:
+   ```bash
+   dietnb install
+   ```
+   After restarting your Jupyter kernel, `dietnb` will be activated automatically. Images will be saved to a folder based on the notebook's path or to the default `dietnb_imgs` directory.
 
-## How it Works
+   **B. Manual Activation (Per Notebook)**
+   If you prefer to use `dietnb` only for specific notebooks or do not want automatic activation, add the following code at the top of your notebook to activate it manually:
+   ```python
+   import dietnb
+   dietnb.activate()
+   ```
 
-(Simplified: remove detailed breakdown of activate() options, focus on the outcome)
-`dietnb` patches `matplotlib.figure.Figure` when activated. When a figure is to be displayed:
-1. It disables the default inline PNG embedding.
-2. It saves the figure to a directory:
-    - Tries to determine the current notebook's path (e.g., in VS Code via `__vsc_ipynb_file__`) and creates a folder like `[notebook_name]_dietnb_imgs` next to it.
-    - If the notebook path cannot be found, it defaults to `dietnb_imgs` in the current working directory.
-3. It generates an `<img>` HTML tag linking to the saved file, including a cache-busting query parameter.
-4. When a cell is re-executed, `dietnb` cleans up old images from that cell's previous output in the determined folder.
+---
 
-## Cleaning Unused Images
+## Example Usage
 
-To remove any image files from the relevant image directory (`dietnb_imgs` or `[notebook_name]_dietnb_imgs`) that no longer correspond to an active cell output in the current IPython session, call:
+With `dietnb` active, use your `matplotlib` code as usual.
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Create a plot
+x = np.linspace(0, 10, 100)
+plt.plot(x, np.sin(x), label='sin(x)')
+plt.plot(x, np.cos(x), label='cos(x)')
+plt.title("Trigonometric Functions")
+plt.xlabel("X-axis")
+plt.ylabel("Y-axis")
+plt.legend()
+
+plt.show() # On show(), the image is saved to a file, and a link is displayed in the notebook.
+```
+Generated images can be found in the `[NotebookFileName]_dietnb_imgs` folder alongside your notebook, or in the `dietnb_imgs` folder.
+
+---
+
+## Cleaning Unused Image Files
+
+To remove image files that are no longer in use, execute the following function in a notebook cell:
 
 ```python
 import dietnb
 dietnb.clean_unused()
 ```
+
+---
 
 ## License
 
