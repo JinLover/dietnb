@@ -4,6 +4,7 @@ import warnings
 from pathlib import Path
 from typing import Optional, Tuple
 import time
+import os
 
 import matplotlib.pyplot as plt
 from IPython import get_ipython
@@ -13,49 +14,95 @@ from matplotlib.figure import Figure
 _state = {}  # Stores {cell_key: last_exec_count}
 # Removed _active_folder, will determine dynamically
 _patch_applied = False
+# _notebook_path_from_js: Optional[str] = None # Keep commented out for now
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 DEFAULT_FOLDER_NAME = "dietnb_imgs"
 
-def _get_notebook_image_dir(ip) -> Path:
-    """Determines the target image directory based on the notebook name."""
-    notebook_path_str = None
-    try:
-        # Attempt to get the notebook path relative to the server root
-        if ip and hasattr(ip, 'kernel') and hasattr(ip.kernel, 'session') and hasattr(ip.kernel.session, 'path'):
-            notebook_path_str = ip.kernel.session.path
-            logger.debug(f"Detected notebook path: {notebook_path_str}")
+def _get_notebook_image_dir(ip_instance, base_folder_name=DEFAULT_FOLDER_NAME) -> Path:
+    """Determines the target image directory based on the notebook name, trying multiple methods."""
+    logger = logging.getLogger('dietnb._core')
+    default_dir = Path(os.getcwd()) / base_folder_name
+    notebook_path_str: Optional[str] = None
+    detection_method: Optional[str] = None
+
+    # --- PRIORITY 1: Standard ip.kernel.session.path ---
+    if ip_instance and hasattr(ip_instance, 'kernel') and ip_instance.kernel and \
+       hasattr(ip_instance.kernel, 'session') and ip_instance.kernel.session:
+        notebook_path_attr = getattr(ip_instance.kernel.session, 'path', None)
+        if isinstance(notebook_path_attr, str) and notebook_path_attr.strip():
+            notebook_path_str = notebook_path_attr.strip()
+            detection_method = "ip.kernel.session.path"
+            logger.debug(f"Detected path via {detection_method}: {notebook_path_str}")
         else:
-            logger.debug("Could not detect notebook path from kernel session.")
+             logger.debug(f"ip.kernel.session.path attribute was not a valid string: '{notebook_path_attr}'")
 
-    except Exception as e:
-        logger.warning(f"Error detecting notebook path: {e}", exc_info=True)
+    # --- PRIORITY 2: VS Code __vsc_ipynb_file__ ---
+    if not notebook_path_str:
+        vsc_path = globals().get("__vsc_ipynb_file__")
+        if isinstance(vsc_path, str) and vsc_path.strip():
+            notebook_path_str = vsc_path.strip()
+            detection_method = "__vsc_ipynb_file__"
+            logger.debug(f"Detected path via {detection_method}: {notebook_path_str}")
+        else:
+             logger.debug(f"__vsc_ipynb_file__ global was not found or not a valid string: '{vsc_path}'")
 
-    if notebook_path_str:
+
+    # --- PRIORITY 3: Jupyter JPY_SESSION_NAME ---
+    if not notebook_path_str:
+        jpy_session_name = os.environ.get("JPY_SESSION_NAME")
+        if isinstance(jpy_session_name, str) and jpy_session_name.strip():
+            # Assume it might be relative to CWD if not absolute
+            potential_path = jpy_session_name.strip()
+            if not os.path.isabs(potential_path):
+                 potential_path = os.path.join(os.getcwd(), potential_path)
+                 logger.debug(f"JPY_SESSION_NAME was relative, resolved to: {potential_path}")
+
+            # Basic check if the resolved path looks like a notebook file
+            if os.path.isfile(potential_path) and potential_path.lower().endswith('.ipynb'):
+                 notebook_path_str = potential_path
+                 detection_method = "JPY_SESSION_NAME"
+                 logger.debug(f"Detected path via {detection_method}: {notebook_path_str}")
+            else:
+                 logger.debug(f"JPY_SESSION_NAME ('{jpy_session_name}') resolved to '{potential_path}', which is not a valid notebook file.")
+        else:
+            logger.debug(f"JPY_SESSION_NAME environment variable not found or not a valid string: '{jpy_session_name}'")
+
+
+    # --- Process the detected path or fallback ---
+    if notebook_path_str and detection_method:
         try:
-            # Construct path relative to CWD, assuming server root = CWD
-            # This might need adjustment in complex setups (e.g., remote kernels, different server root)
-            notebook_file_path = Path(notebook_path_str).resolve()
-            # Check if path seems plausible (e.g., exists, though it might not if just renamed/moved)
-            # notebook_dir = notebook_file_path.parent
-            notebook_stem = notebook_file_path.stem
-            folder_name = f"{notebook_stem}_dietnb_imgs"
-            # Assume images are saved relative to the *current working directory*
-            # which is usually where the notebook kernel is started.
-            target_dir = Path.cwd() / folder_name
-            logger.debug(f"Using notebook-specific image directory: {target_dir}")
-            return target_dir
-        except Exception as e:
-            logger.warning(f"Error processing notebook path '{notebook_path_str}': {e}. Falling back to default.", exc_info=True)
-            # Fallback to default if path processing fails
-            pass
+            notebook_path = Path(notebook_path_str)
+            notebook_fname = notebook_path.name
+            notebook_name_without_ext, _ = os.path.splitext(notebook_fname)
 
-    # Fallback to default directory name if path not found or processing failed
-    target_dir = Path.cwd() / DEFAULT_FOLDER_NAME
-    logger.debug(f"Falling back to default image directory: {target_dir}")
-    return target_dir
+            if not notebook_name_without_ext:
+                 logger.warning(f"Could not extract valid name from path '{notebook_path_str}' (method: {detection_method}). Falling back.")
+                 target_dir = default_dir
+            else:
+                 notebook_dir_name_part = f"{notebook_name_without_ext}_{base_folder_name}"
+                 # Place the dir next to the notebook file
+                 target_dir_base = notebook_path.parent
+                 target_dir = target_dir_base / notebook_dir_name_part
+                 logger.info(f"Using notebook-specific image directory via {detection_method}: {target_dir}")
+
+        except Exception as e:
+            logger.error(f"Error processing path '{notebook_path_str}' (method: {detection_method}): {e}. Falling back.")
+            target_dir = default_dir
+    else:
+        logger.info(f"Failed to detect notebook path via all methods. Falling back to default directory: {default_dir}")
+        target_dir = default_dir
+
+    # Ensure directory exists and return Path object
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        return target_dir
+    except OSError as e:
+        logger.error(f"Failed to create target directory {target_dir}: {e}. Returning default {default_dir} as last resort.")
+        default_dir.mkdir(parents=True, exist_ok=True) # Try creating default dir if target failed
+        return default_dir
 
 def _get_cell_key(ip) -> str:
     """Generates a unique key for the current cell execution."""
