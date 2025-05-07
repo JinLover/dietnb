@@ -63,8 +63,6 @@ def install_startup_script():
         print(f"dietnb startup script installed to: {target_script_path}")
         print("Please restart your IPython/Jupyter kernel for changes to take effect.")
         print("dietnb will now attempt to activate automatically.")
-        print("If you need to specify a folder_prefix, please use manual activation:")
-        print("  import dietnb; dietnb.activate(folder_prefix=\"MyProject\")")
         logger.info(f"Startup script '{script_name}' written to '{startup_dir}' from '{source_startup_script_path}'.")
 
     except ImportError:

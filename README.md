@@ -19,90 +19,40 @@
     ```bash
     pip install dietnb
     ```
-2.  **Activate (Mandatory in each notebook):**
-    Add **one** of the following lines at the beginning of your notebook:
+2.  **Activate:**
+    You have two main options:
 
-    ```python
-    # Option 1: Python call (default folder: 'dietnb_imgs' or auto-detected)
-    import dietnb
-    dietnb.activate() 
+    *   **Automatic Activation (Recommended):** Run `dietnb install` once in your terminal. After restarting your Jupyter kernel, `dietnb` will activate automatically in all sessions. It will try to save images to a notebook-specific folder (e.g., `MyNotebook_dietnb_imgs`) or fall back to `dietnb_imgs`.
 
-    # Option 1a: Python call (custom folder: 'MyProject_dietnb_imgs')
-    # import dietnb
-    # dietnb.activate(folder_prefix="MyProject")
-    ```
-    ```python
-    # Option 2: IPython magic
-    %load_ext dietnb
-    ```
+    *   **Manual Activation (Per Notebook):** Add the following to the top of your notebook if you prefer to activate `dietnb` manually:
+        ```python
+        import dietnb
+        dietnb.activate()
+        ```
 
-That\'s it! After activation, `matplotlib` figures generated via `plt.show()` or displayed at the end of a cell will be automatically saved to a folder and linked in the output. 
-- By default, this folder is `dietnb_imgs` (relative to the notebook\'s execution directory) or a name derived from your notebook file if auto-detection is successful.
-- If you use `dietnb.activate(folder_prefix="PREFIX")`, images will be saved to `PREFIX_dietnb_imgs`.
+That's it! `matplotlib` figures will now be saved externally.
 
-*(Note: The `dietnb install` command for automatic activation is disabled in this version.)*
+*(The `dietnb install` command handles automatic activation. Manual activation is an alternative.)*
 
 ## How it Works
 
-**1. Automatic Activation (via `dietnb install`)**
-
-If you want `dietnb` to activate automatically every time you start an IPython/Jupyter session,
-run this command once in your terminal:
-
-```bash
-dietnb install
-```
-Then, **restart your Jupyter kernel(s)**. `dietnb` will be active in all new sessions,
-attempting to save images to a notebook-specific folder (e.g., `MyNotebook_dietnb_imgs`)
-or falling back to `dietnb_imgs` if the notebook path cannot be determined.
-
-**2. Manual Activation (Per Notebook)**
-
-If you prefer to activate `dietnb` manually for specific notebooks, or if you want to
-use the `folder_prefix` option, add the following to the top of your notebook:
-
-```python
-# Option A: Python code
-import dietnb
-
-# Activate with default behavior (attempts auto-detection for folder name)
-dietnb.activate()
-
-# Or, activate with a specific folder prefix (e.g., for 'MyProject_dietnb_imgs')
-# dietnb.activate(folder_prefix="MyProject")
-```
-
-**Example:**
-
-Once active, use `matplotlib` as usual:
-
-```python
-import matplotlib.pyplot as plt
-import numpy as np
-
-x = np.linspace(0, 10, 100)
-y = np.sin(x)
-
-plt.plot(x, y)
-plt.title("Sine Wave")
-plt.show() # Figure is saved locally, and a link is displayed in the notebook.
-```
+(Simplified: remove detailed breakdown of activate() options, focus on the outcome)
+`dietnb` patches `matplotlib.figure.Figure` when activated. When a figure is to be displayed:
+1. It disables the default inline PNG embedding.
+2. It saves the figure to a directory:
+    - Tries to determine the current notebook's path (e.g., in VS Code via `__vsc_ipynb_file__`) and creates a folder like `[notebook_name]_dietnb_imgs` next to it.
+    - If the notebook path cannot be found, it defaults to `dietnb_imgs` in the current working directory.
+3. It generates an `<img>` HTML tag linking to the saved file, including a cache-busting query parameter.
+4. When a cell is re-executed, `dietnb` cleans up old images from that cell's previous output in the determined folder.
 
 ## Cleaning Unused Images
 
-To remove images from a previous cell execution (or an old notebook session for a given prefix), you can call:
+To remove any image files from the relevant image directory (`dietnb_imgs` or `[notebook_name]_dietnb_imgs`) that no longer correspond to an active cell output in the current IPython session, call:
 
 ```python
 import dietnb
-
-# Clean for the default/auto-detected folder context
 dietnb.clean_unused()
-
-# Clean for a specific folder_prefix context
-# dietnb.clean_unused(folder_prefix="MyProject")
 ```
-
-This function will scan the relevant image directory (`dietnb_imgs`, `[notebook_name]_dietnb_imgs`, or `[prefix]_dietnb_imgs`) and delete any `.png` files that don\'t correspond to an active cell output in the current IPython session for that context.
 
 ## License
 

@@ -13,40 +13,22 @@ from matplotlib.figure import Figure
 # Global state
 _state = {}  # Stores {cell_key: last_exec_count}
 _patch_applied = False
-_current_folder_prefix: Optional[str] = None # Store prefix at module level for repatching
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 DEFAULT_FOLDER_NAME = "dietnb_imgs"
 
-def _get_notebook_image_dir(ip_instance, folder_prefix: Optional[str] = None, base_folder_name=DEFAULT_FOLDER_NAME) -> Path:
+def _get_notebook_image_dir(ip_instance, base_folder_name=DEFAULT_FOLDER_NAME) -> Path:
     """Determines the target image directory.
     Priority:
-    1. User-provided folder_prefix.
-    2. Auto-detected notebook name.
-    3. Default directory.
+    1. Auto-detected notebook name.
+    2. Default directory.
     """
     logger = logging.getLogger('dietnb._core')
     default_dir_for_fallback = Path(os.getcwd()) / base_folder_name
     notebook_path_str: Optional[str] = None
     detection_method: Optional[str] = None
-
-    # --- PRIORITY 0: User-provided folder_prefix ---
-    if folder_prefix:
-        if not isinstance(folder_prefix, str) or not folder_prefix.strip():
-            logger.warning(f"Invalid folder_prefix '{folder_prefix}' provided. Will attempt auto-detection or fallback.")
-        else:
-            target_dir_name = f"{folder_prefix.strip()}_{base_folder_name}"
-            # Place the dir in CWD if prefix is given, for simplicity and predictability
-            target_dir = Path(os.getcwd()) / target_dir_name
-            logger.info(f"Using user-provided folder_prefix to create directory: {target_dir}")
-            try:
-                target_dir.mkdir(parents=True, exist_ok=True)
-                return target_dir
-            except OSError as e:
-                logger.error(f"Failed to create directory {target_dir} with prefix: {e}. Falling back.")
-                # Fall through to auto-detection or default if creation fails
 
     # --- PRIORITY 1: Standard ip.kernel.session.path (if no valid prefix was used) ---
     if ip_instance and hasattr(ip_instance, 'kernel') and ip_instance.kernel and \
@@ -113,7 +95,7 @@ def _get_notebook_image_dir(ip_instance, folder_prefix: Optional[str] = None, ba
             logger.error(f"Error processing path '{notebook_path_str}' (method: {detection_method}): {e}. Falling back.")
             target_dir = default_dir_for_fallback
     else:
-        logger.info(f"Failed to detect notebook path via all methods and no valid folder_prefix. Falling back to default directory: {default_dir_for_fallback}")
+        logger.info(f"Failed to detect notebook path via all methods. Falling back to default directory: {default_dir_for_fallback}")
         target_dir = default_dir_for_fallback
 
     # Ensure directory exists and return Path object
@@ -160,16 +142,16 @@ def _get_cell_key(ip) -> str:
         )
         return fallback_key
 
-def _save_figure_and_get_html(fig: Figure, ip, folder_prefix: Optional[str] = None, fmt="png", dpi=150) -> Optional[str]:
+def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[str]:
     """Saves the figure to a file and returns an HTML img tag."""
     global _state
-    logger_core = logging.getLogger('dietnb._core') # Explicitly get core logger
+    logger_core = logging.getLogger('dietnb._core')
     if not ip:
         logger_core.error("IPython kernel not found. Cannot save figure.")
         return None
 
-    # Determine target directory dynamically, passing folder_prefix
-    image_dir = _get_notebook_image_dir(ip, folder_prefix=folder_prefix)
+    # Determine target directory dynamically (no folder_prefix)
+    image_dir = _get_notebook_image_dir(ip)
 
     key = _get_cell_key(ip)
     # Use execution_count if available, otherwise fallback (e.g., timestamp for uniqueness)
@@ -221,15 +203,13 @@ def _no_op_repr_png(fig: Figure):
     """Prevents the default PNG representation."""
     return None
 
-def _patch_figure_reprs(ip, folder_prefix: Optional[str] = None):
+def _patch_figure_reprs(ip):
     """Applies the monkey-patches to the Figure class."""
-    global _patch_applied, _current_folder_prefix
-    logger_core = logging.getLogger('dietnb._core') # Explicitly get core logger
+    global _patch_applied
+    logger_core = logging.getLogger('dietnb._core')
     if not ip:
         logger_core.warning("Cannot patch Figure: IPython kernel not found.")
         return
-
-    _current_folder_prefix = folder_prefix # Store for re-patching
 
     # Disable default PNG embedding
     try:
@@ -240,15 +220,15 @@ def _patch_figure_reprs(ip, folder_prefix: Optional[str] = None):
 
     # Patch Figure methods
     Figure._repr_png_ = _no_op_repr_png
-    # Use a lambda to capture the current ip and folder_prefix
-    Figure._repr_html_ = lambda fig_obj: _save_figure_and_get_html(fig_obj, ip, folder_prefix=_current_folder_prefix)
+    # Use a lambda to capture the current ip
+    Figure._repr_html_ = lambda fig_obj: _save_figure_and_get_html(fig_obj, ip)
     _patch_applied = True
-    logger_core.debug(f"Applied Figure repr patches. Folder prefix: '{_current_folder_prefix}'.")
+    logger_core.debug(f"Applied Figure repr patches.")
 
 def _restore_figure_reprs(ip):
     """Restores original Figure representations (best effort)."""
-    global _patch_applied, _current_folder_prefix
-    logger_core = logging.getLogger('dietnb._core') # Explicitly get core logger
+    global _patch_applied
+    logger_core = logging.getLogger('dietnb._core')
     if not _patch_applied:
         return
     # This requires storing the original methods, which we aren't doing yet.
@@ -267,13 +247,12 @@ def _restore_figure_reprs(ip):
         pass # Ignore if formatter doesn't exist
 
     _patch_applied = False
-    _current_folder_prefix = None # Reset prefix
     logger_core.debug("Attempted to restore Figure repr patches.")
 
 
-def _post_cell_cleanup_and_repatch(ip, folder_prefix: Optional[str] = None):
+def _post_cell_cleanup_and_repatch(ip):
     """Closes figures and re-applies patches after cell execution."""
-    logger_core = logging.getLogger('dietnb._core') # Explicitly get core logger
+    logger_core = logging.getLogger('dietnb._core')
     if not ip:
         return
 
@@ -291,13 +270,12 @@ def _post_cell_cleanup_and_repatch(ip, folder_prefix: Optional[str] = None):
         logger_core.warning(f"Exception during plt.close('all'): {e}")
 
     # Re-apply patches in case the backend was changed or reset
-    # Pass the folder_prefix that was active during this cell's context
-    _patch_figure_reprs(ip, folder_prefix)
+    _patch_figure_reprs(ip)
 
-def _clean_unused_images_logic(folder_prefix: Optional[str] = None) -> dict:
+def _clean_unused_images_logic() -> dict:
     """Deletes image files whose keys are not in the current state *for the current context*."""
     global _state
-    logger_core = logging.getLogger('dietnb._core') # Explicitly get core logger
+    logger_core = logging.getLogger('dietnb._core')
     deleted_files = []
     failed_deletions = []
     kept_files = []
@@ -307,8 +285,8 @@ def _clean_unused_images_logic(folder_prefix: Optional[str] = None) -> dict:
         logger_core.warning("Cannot determine notebook context outside IPython. Skipping cleanup.")
         return {"deleted": [], "failed": [], "kept": [], "message": "Cleanup skipped: Not in IPython."}
 
-    # Determine the directory for the *current* context, using folder_prefix if provided
-    image_dir = _get_notebook_image_dir(ip, folder_prefix=folder_prefix)
+    # Determine the directory for the *current* context (no folder_prefix)
+    image_dir = _get_notebook_image_dir(ip)
 
     if not image_dir.exists():
         logger_core.info(f"Image directory '{image_dir}' does not exist. Nothing to clean.")
