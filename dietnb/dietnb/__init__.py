@@ -20,9 +20,7 @@ def activate(folder="dietnb_imgs"):
         logger.error("dietnb requires an active IPython kernel.")
         return
 
-    # Update the active folder used by the core module
-    _core._active_folder = Path.cwd() / folder
-    logger.info(f"dietnb activated. Images will be saved to: {_core._active_folder}")
+    logger.info(f"dietnb activated. Figures will be saved to notebook-specific directories (e.g., [notebook_name]_dietnb_imgs) or '{_core.DEFAULT_FOLDER_NAME}'.")
 
     # Apply the core patches
     _core._patch_figure_reprs(ip)
@@ -67,14 +65,8 @@ def deactivate():
         logger.info("dietnb deactivated (handler was not registered).")
 
 def clean_unused() -> dict:
-    """Cleans up image files not associated with the current kernel state."""
-    # Ensure core module knows the folder (in case activate wasn't called recently)
-    # This assumes activate sets the folder correctly first.
-    if not _core._active_folder:
-         logger.warning("Cannot clean images: target folder not set. Call activate() first.")
-         return {"deleted": [], "failed": [], "kept": [], "message": "Target folder not set."}
-
-    logger.info(f"Cleaning unused images in: {_core._active_folder}")
+    """Cleans up image files not associated with the current kernel state for the current notebook."""
+    logger.info(f"Cleaning unused images in the directory associated with the current notebook context...")
     return _core._clean_unused_images_logic()
 
 # Make functions easily available
