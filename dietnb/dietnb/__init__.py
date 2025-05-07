@@ -6,23 +6,48 @@ from IPython import get_ipython
 from . import _core
 
 # Configure logging for the package
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# We will set up more specific logging in activate()
+logger = logging.getLogger(__name__) # This is 'dietnb'
 
 # Keep track of registered events to allow unloading
 _post_run_cell_handler = None
 
-def activate(folder="dietnb_imgs"):
+def activate(ipython_instance=None, folder="dietnb_imgs"):
     """Activates dietnb: Patches matplotlib Figure representation in IPython."""
     global _post_run_cell_handler
-    ip = get_ipython()
+
+    # --- Enhanced Logging Setup ---
+    # Get the root logger for 'dietnb' and its children like 'dietnb._core', 'dietnb._ipython'
+    dietnb_root_logger = logging.getLogger('dietnb')
+    dietnb_root_logger.setLevel(logging.DEBUG) # Set to DEBUG for development
+
+    # Ensure at least one handler is present to see output, e.g., a StreamHandler for console.
+    # This prevents issues if no root config was called or if handlers were cleared.
+    if not dietnb_root_logger.handlers:
+        console_handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+        dietnb_root_logger.addHandler(console_handler)
+        # Also ensure propagation is not disabled if adding a handler here for the first time
+        dietnb_root_logger.propagate = False 
+    # --- End Enhanced Logging Setup ---
+
+    # If ipython_instance is not provided, try to get it.
+    ip = ipython_instance if ipython_instance else get_ipython()
+
     if not ip:
-        logger.error("dietnb requires an active IPython kernel.")
+        # Use our own logger now that it's configured
+        logging.getLogger('dietnb').error("dietnb requires an active IPython kernel.")
         return
 
-    logger.info(f"dietnb activated. Figures will be saved to notebook-specific directories (e.g., [notebook_name]_dietnb_imgs) or '{_core.DEFAULT_FOLDER_NAME}'.")
+    # Now use the configured logger
+    current_logger = logging.getLogger('dietnb') 
+    current_logger.info(f"dietnb activating. Figures will be saved based on notebook path or to '{_core.DEFAULT_FOLDER_NAME}'.")
+    current_logger.debug(f"IPython instance: {ip}")
+    current_logger.debug(f"Target base folder name: {folder}") # folder arg is not used yet by _core
 
-    # Apply the core patches
+    # Apply the core patches, passing the ipython instance
     _core._patch_figure_reprs(ip)
 
     # Register post-cell cleanup and repatching
@@ -42,12 +67,15 @@ def activate(folder="dietnb_imgs"):
     ip.events.register('post_run_cell', _post_run_cell_handler)
     logger.debug("Registered post_run_cell handler.")
 
-def deactivate():
+def deactivate(ipython_instance=None):
     """Deactivates dietnb: Restores original matplotlib Figure representation (best effort)."""
     global _post_run_cell_handler
-    ip = get_ipython()
+    current_logger = logging.getLogger('dietnb') # Use configured logger
+
+    ip = ipython_instance if ipython_instance else get_ipython()
+
     if not ip:
-        logger.warning("IPython kernel not found. Cannot deactivate properly.")
+        current_logger.warning("IPython kernel not found. Cannot deactivate properly.")
         return
 
     # Attempt to restore original representations
@@ -58,11 +86,11 @@ def deactivate():
         try:
             ip.events.unregister('post_run_cell', _post_run_cell_handler)
             _post_run_cell_handler = None # Clear reference
-            logger.info("dietnb deactivated. Unregistered event handler.")
+            current_logger.info("dietnb deactivated. Unregistered event handler.")
         except ValueError:
-            logger.warning("Could not unregister post_run_cell handler.")
+            current_logger.warning("Could not unregister post_run_cell handler.")
     else:
-        logger.info("dietnb deactivated (handler was not registered).")
+        current_logger.info("dietnb deactivated (handler was not registered).")
 
 def clean_unused() -> dict:
     """Cleans up image files not associated with the current kernel state for the current notebook."""
