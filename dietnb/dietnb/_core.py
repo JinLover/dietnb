@@ -59,16 +59,17 @@ def _get_notebook_image_dir(ip_instance, folder_prefix: Optional[str] = None, ba
         else:
              logger.debug(f"ip.kernel.session.path attribute was not a valid string: '{notebook_path_attr}'")
 
-    # --- PRIORITY 2: VS Code __vsc_ipynb_file__ ---
-    if not notebook_path_str:
-        vsc_path = globals().get("__vsc_ipynb_file__")
+    # --- PRIORITY 2: VS Code __vsc_ipynb_file__ (from user_global_ns) ---
+    if not notebook_path_str and ip_instance and hasattr(ip_instance, 'user_global_ns'):
+        vsc_path = ip_instance.user_global_ns.get("__vsc_ipynb_file__")
         if isinstance(vsc_path, str) and vsc_path.strip():
             notebook_path_str = vsc_path.strip()
-            detection_method = "__vsc_ipynb_file__"
+            detection_method = "__vsc_ipynb_file__ (from user_global_ns)"
             logger.debug(f"Detected path via {detection_method}: {notebook_path_str}")
         else:
-             logger.debug(f"__vsc_ipynb_file__ global was not found or not a valid string: '{vsc_path}'")
-
+             logger.debug(f"__vsc_ipynb_file__ not found or invalid in ip.user_global_ns: '{vsc_path}'")
+    elif not notebook_path_str:
+        logger.debug("Could not attempt __vsc_ipynb_file__ check: ip_instance or user_global_ns not available.")
 
     # --- PRIORITY 3: Jupyter JPY_SESSION_NAME ---
     if not notebook_path_str:
