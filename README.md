@@ -13,13 +13,30 @@
 *   **Automatic Cleanup:** Deletes images from a cell's previous execution when the cell is re-run.
 *   **Manual Cleanup:** Provides `dietnb.clean_unused()` to remove image files no longer referenced by the current kernel session.
 
-## Installation
+## Quick Start
 
-```bash
-pip install dietnb
-```
+1.  **Install:**
+    ```bash
+    pip install dietnb
+    ```
+2.  **Activate (Mandatory in each notebook):**
+    Add **one** of the following lines at the beginning of your notebook:
 
-## Usage
+    ```python
+    # Option 1: Python call
+    import dietnb
+    dietnb.activate() 
+    ```
+    ```python
+    # Option 2: IPython magic
+    %load_ext dietnb
+    ```
+
+That\'s it! After activation, `matplotlib` figures generated via `plt.show()` or displayed at the end of a cell will be automatically saved to a `dietnb_imgs` folder (relative to the notebook\'s execution directory) and linked in the output, keeping your `.ipynb` file small.
+
+*(Note: The `dietnb install` command for automatic activation is disabled in this version.)*
+
+## How it Works
 
 **1. Automatic Activation (Recommended)**
 

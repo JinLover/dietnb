@@ -23,60 +23,35 @@ def find_ipython_startup_dir() -> Optional[Path]:
         return None
 
 def install_startup_script():
-    """Copies the startup script to the IPython startup directory."""
-    startup_dir = find_ipython_startup_dir()
-    if not startup_dir:
-        print("Could not find IPython startup directory. Installation failed.", file=sys.stderr)
-        return False
+    """Installs the dietnb startup script for IPython."""
+    # --- MODIFIED: Disable automatic installation --- 
+    print("'dietnb install' is currently disabled.")
+    print("Please activate dietnb manually in each notebook using:")
+    print("  import dietnb; dietnb.activate()")
+    print("or")
+    print("  %load_ext dietnb")
+    print("(Automatic startup script installation is not supported in this version.)")
+    # --- End Modification ---
 
-    try:
-        startup_dir.mkdir(parents=True, exist_ok=True)
-    except OSError as e:
-        print(f"Error creating startup directory {startup_dir}: {e}", file=sys.stderr)
-        return False
-
-    # Use importlib.resources in Python 3.9+ for robustness
-    source_path = None
-    try:
-        if sys.version_info >= (3, 9):
-            import importlib.resources as pkg_resources
-            with pkg_resources.path('dietnb', '_startup.py') as p:
-                source_path = p
-        else:
-            # Fallback for older Python versions (less robust)
-            import pkg_resources
-            source_path = Path(pkg_resources.resource_filename('dietnb', '_startup.py'))
-
-    except (ImportError, ModuleNotFoundError):
-         print("Could not locate the startup script within the package.", file=sys.stderr)
-         # Basic fallback assuming standard package structure
-         try:
-             source_path = Path(__file__).parent / '_startup.py'
-             if not source_path.exists():
-                 raise FileNotFoundError
-         except (NameError, FileNotFoundError):
-              print("Fallback failed. Could not find _startup.py.", file=sys.stderr)
-              return False
-    except Exception as e:
-         print(f"Error accessing package resources: {e}", file=sys.stderr)
-         return False
-
-    if not source_path or not source_path.exists():
-         print(f"Startup script source ('{source_path}') not found. Installation failed.", file=sys.stderr)
-         return False
-
-    # Use a filename that's unlikely to clash and indicates the package
-    target_filename = "99-dietnb_startup.py"
-    target_path = startup_dir / target_filename
-
-    try:
-        shutil.copyfile(source_path, target_path)
-        print(f"Successfully installed dietnb startup script to:\n  {target_path}")
-        print("Restart your IPython kernel for changes to take effect.")
-        return True
-    except Exception as e:
-        print(f"Error copying startup script from {source_path} to {target_path}: {e}", file=sys.stderr)
-        return False
+    # --- Original Code (Commented Out) ---
+    # try:
+    #     ipython_dir = Path(get_ipython_dir())
+    #     startup_dir = ipython_dir / "profile_default" / "startup"
+    #     startup_dir.mkdir(parents=True, exist_ok=True)
+    # 
+    #     source_path = Path(__file__).parent / "_startup.py"
+    #     target_path = startup_dir / "99-dietnb.py"
+    # 
+    #     with source_path.open("r") as source_file, target_path.open("w") as target_file:
+    #         target_file.write(source_file.read())
+    #         
+    #     print(f"dietnb startup script installed to: {target_path}")
+    #     print("Restart your IPython kernel for changes to take effect.")
+    # except Exception as e:
+    #     print(f"Error installing startup script: {e}", file=sys.stderr)
+    #     print("Please activate manually using 'import dietnb; dietnb.activate()' or '%load_ext dietnb'.", file=sys.stderr)
+    #     sys.exit(1)
+    # --- End Original Code ---
 
 def main():
     parser = argparse.ArgumentParser(description="dietnb command line utility.")
