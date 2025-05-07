@@ -1,5 +1,4 @@
 import argparse
-import logging
 import shutil
 import sys
 from pathlib import Path
@@ -8,8 +7,6 @@ import os # For path joining
 
 # Ensure this path is correct for your project structure
 # DIETNB_STARTUP_SCRIPT_CONTENT will be read from the _startup.py file directly
-
-logger = logging.getLogger(__name__)
 
 def find_ipython_startup_dir() -> Optional[Path]:
     """Finds the default IPython profile's startup directory."""
@@ -20,10 +17,8 @@ def find_ipython_startup_dir() -> Optional[Path]:
         startup_dir = profile_dir / 'startup'
         return startup_dir
     except ImportError:
-        logger.error("IPython is not installed. Cannot find startup directory.")
         return None
     except Exception as e:
-        logger.error(f"Error finding IPython startup directory: {e}")
         return None
 
 def get_ipython_dir() -> str:
@@ -49,9 +44,8 @@ def install_startup_script():
         source_startup_script_path = Path(__file__).parent / "_startup.py"
 
         if not source_startup_script_path.is_file():
-            logger.error(f"Source startup script not found at {source_startup_script_path}")
-            print(f"Error: Source startup script not found. Installation failed.")
-            return
+            print(f"Error: Source startup script not found. Installation failed.", file=sys.stderr)
+            return False
             
         script_name = "00-dietnb.py" # Ensure it runs early
         target_script_path = startup_dir / script_name
@@ -63,14 +57,14 @@ def install_startup_script():
         print(f"dietnb startup script installed to: {target_script_path}")
         print("Please restart your IPython/Jupyter kernel for changes to take effect.")
         print("dietnb will now attempt to activate automatically.")
-        logger.info(f"Startup script '{script_name}' written to '{startup_dir}' from '{source_startup_script_path}'.")
+        return True
 
     except ImportError:
-        print("IPython is not installed or not found. Cannot install startup script.")
-        logger.error("IPython not found, cannot install startup script.")
+        print("IPython is not installed or not found. Cannot install startup script.", file=sys.stderr)
+        return False
     except Exception as e:
-        print(f"Error installing dietnb startup script: {e}")
-        logger.error(f"Failed to install startup script: {e}", exc_info=True)
+        print(f"Error installing dietnb startup script: {e}", file=sys.stderr)
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="dietnb command line utility.")
@@ -79,9 +73,6 @@ def main():
     # Install command
     parser_install = subparsers.add_parser('install', help='Install the IPython startup script for automatic activation.')
     parser_install.set_defaults(func=install_startup_script)
-
-    # Basic logging setup for CLI
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
     args = parser.parse_args()
 
