@@ -1,20 +1,17 @@
-# `dietnb` (v0.1.1)
+# `dietnb` (v0.1.2)
 
 [![PyPI version](https://badge.fury.io/py/dietnb.svg)](https://badge.fury.io/py/dietnb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`dietnb` automatically saves `matplotlib` figures as external PNG files and embeds them as `<img>` links in Jupyter notebooks. This significantly reduces `.ipynb` file sizes by preventing base64 image embedding.
+`dietnb` automatically saves `matplotlib` figures as local PNG files and embeds `<img>` links in Jupyter notebooks. This prevents base64 image embedding, significantly reducing `.ipynb` file sizes.
 
 ---
 
 ## Key Features
 
-*   **Reduces Notebook Size:** Stores images externally, keeping `.ipynb` files small.
-*   **Automatic Operation:** Works in the background after installation and a one-time setup.
-*   **Cell-Specific Naming:** Images are named based on cell ID and an index for multiple figures per cell.
-*   **Automatic Cleanup:** Deletes a cell's previous images upon re-execution.
-*   **Cache Busting:** Uses a version query in image links for reliable updates.
-*   **Manual Cleanup:** `dietnb.clean_unused()` function to remove orphaned images.
+*   **Reduces Notebook Size:** Stores images externally in a `{notebook_filename}_dietnb_imgs/` directory next to the notebook, keeping `.ipynb` files small.
+*   **Automatic Cleanup:** Deletes images from a cell's previous execution when the cell is re-run.
+*   **Manual Cleanup:** Provides `dietnb.clean_unused()` to remove image files no longer referenced by the current kernel session.
 
 ## Installation
 
@@ -26,7 +23,7 @@ pip install dietnb
 
 **1. Automatic Activation (Recommended)**
 
-After installing, run this in your terminal (with your virtual environment activated):
+After installation, run this command in your terminal (with your virtual environment activated):
 
 ```bash
 dietnb install
@@ -35,7 +32,7 @@ Then, **restart your Jupyter kernel(s)**. `dietnb` will be active in all new ses
 
 **2. Manual Activation (Per Notebook)**
 
-Add one of the following to the beginning of your notebook:
+Add one of the following to the top of your notebook:
 
 ```python
 # Option A: Python code
@@ -61,14 +58,12 @@ y = np.sin(x)
 
 plt.plot(x, y)
 plt.title("Sine Wave")
-plt.show() # Saved to dietnb_imgs/your_notebook_name_figures/ and linked
+plt.show() # Figure is saved locally, and a link is displayed in the notebook.
 ```
-
-Figures will be saved in a `dietnb_imgs` subdirectory (by default) next to your notebook.
 
 ## Cleaning Unused Images
 
-To remove image files no longer referenced by the kernel:
+To remove image files no longer referenced by the current kernel:
 
 ```python
 import dietnb

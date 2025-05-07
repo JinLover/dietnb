@@ -1,4 +1,4 @@
-# **`dietnb` (v0.1.1) — "Notebook 비만" 즉시 해소 패키지**
+# **`dietnb` (v0.1.2) — "Notebook 비만" 즉시 해소 패키지**
 
 > **문제 의식**  
 > * `matplotlib` Figure가 Base-64로 .ipynb 안에 저장 → 노트북 용량 MB ↗︎↗︎  
@@ -20,6 +20,7 @@
 | 5 | **브라우저 캐시 무효** | `<img …?v=exec_id>` |
 | 6 | **첫 Figure부터 적용** | `_repr_html_` 직접 오버라이드 |
 | 7 | **백엔드 재등록 방어** | `post_run_cell` 마다 패치 재주입 |
+| 8 | **노트북별 폴더 저장 (v0.1.2+)** | `_get_notebook_image_dir()` 사용 |
 
 ---
 
@@ -55,26 +56,27 @@ dietnb install                     # ➋ 자동 스타트업 스크립트 등록
 dietnb/
 ├─ dietnb
 │  ├─ __init__.py         # public API: activate(), deactivate(), clean_unused()
-│  ├─ _core.py            # Figure 저장/링크 핵심 로직, 상태 관리
+│  ├─ _core.py            # Figure 저장/링크 핵심 로직, 상태 관리, 노트북 경로 기반 폴더 결정
 │  ├─ _startup.py         # `dietnb install` 시 복사될 IPython 스타트업 스크립트 내용
 │  ├─ _ipython.py         # `%load_ext dietnb` 구현
 │  └─ _cli.py             # `dietnb install` 명령어 처리 로직 (main 함수)
 ├─ dietnb_js/             # Lab/VSC UI (선택, **미구현**)
 ├─ tests/                 # 자동화 테스트 (pytest, **기본 설정만 완료**)
-├─ README.md
+├─ README.md              # 영어 README (사용자 중심, 간결화)
+├─ README_ko.md           # 한국어 README (사용자 중심, 간결화)
 └─ pyproject.toml
 ```
 
 ### `_core.activate()` 주요 흐름 (구현됨)
 
 ```python
-def activate(folder="dietnb_imgs"):
+def activate(folder="dietnb_imgs"): # folder 인자는 이제 내부적으로 사용되지 않음
     ip = get_ipython()                            # ①
     ip.display_formatter.formatters['image/png'].enabled = False # PNG 포매터 비활성화
     Figure._repr_png_  = lambda self: None        # ② PNG 임베드 완전 차단
-    Figure._repr_html_ = lambda fig: _save_figure_and_get_html(fig, ip) # ③ HTML 생성 로직 연결
+    Figure._repr_html_ = lambda fig: _save_figure_and_get_html(fig, ip) # ③ HTML 생성 로직 연결 (내부에서 폴더 결정)
     # ④ 셀 실행 후 정리 및 재패치 핸들러 등록 (IPython 이벤트 인자 받도록 수정됨)
-    ip.events.register('post_run_cell', _post_cell_cleanup_and_repatch_handler)
+    ip.events.register('post_run_cell', _post_cell_cleanup_and_repatch)
 ```
 
 ---
@@ -84,11 +86,11 @@ def activate(folder="dietnb_imgs"):
 ```toml
 [project]
 name            = "dietnb"
-version         = "0.1.0"
+version         = "0.1.2" # 버전 업데이트
 description     = "Save matplotlib figures as external files and link them, keeping notebooks tiny."
-readme          = "README.md"
+readme          = "README.md" # 영어 README 참조
 license         = {text = "MIT"}
-authors         = [{name = "Taeyong Park"}]
+authors         = [{name = "JinLover"}]
 requires-python = ">=3.8"
 dependencies    = ["ipython>=8", "matplotlib>=3.5"]
 
@@ -109,12 +111,12 @@ dev = [
 
 ---
 
-## 5. 배포 (완료)
+## 5. 배포 (v0.1.2 준비 중)
 
 ```bash
 python -m pip install --upgrade build twine  # ➊ 빌드 도구 설치 (완료)
-python -m build                            # ➋ dist/ 디렉터리 생성 (완료)
-twine upload dist/*                        # ➌ PyPI 업로드 (완료)
+python -m build                            # ➋ dist/ 디렉터리 생성 (진행 예정)
+twine upload dist/*                        # ➌ PyPI 업로드 (진행 예정)
 ```
 
 ---
@@ -128,29 +130,31 @@ import matplotlib.pyplot as plt
 
 for i in range(3):
     plt.plot(np.linspace(0, 100), np.sin(np.linspace(0, 10) + i))
-    plt.show() # 자동으로 dietnb_imgs/ 폴더에 저장되고 링크 출력
+    plt.show() # 자동으로 [노트북이름]_dietnb_imgs/ 폴더에 저장되고 링크 출력
 ```
 
 * ipynb 증가량 ≈ 120 bytes
-* `dietnb_imgs/<hash>_{1,2,3}.png` 생성
+* `[노트북이름]_dietnb_imgs/<hash>_{1,2,3}.png` 생성
 * 다른 셀 실행 후 `dietnb.clean_unused()` 호출 시 이전 셀 이미지 정리 가능
 
 ---
 
 ## 7. 현재 상태 및 로드맵
 
-### 현재 상태 (v0.1.0 기준) - PyPI 배포 완료
+### 현재 상태 (v0.1.2 기준) - 배포 준비
 *   **핵심 기능 구현 완료:** Matplotlib 그림 외부 저장 및 링크 기능 정상 작동.
+*   **노트북별 폴더 저장 기능 추가:** 이미지가 노트북 파일명 기반의 폴더에 저장됨.
 *   **설치 및 자동 활성화 구현:** `pip install dietnb` 및 `dietnb install` 통한 설치 및 자동 시작 스크립트 등록 완료.
 *   **수동 활성화 구현:** `%load_ext dietnb` 및 `dietnb.activate()` 작동.
-*   **이미지 정리 기능 구현:** `dietnb.clean_unused()` 함수 구현 완료.
+*   **이미지 정리 기능 구현:** `dietnb.clean_unused()` 함수 구현 완료 (노트북 컨텍스트 기반).
 *   **기본 패키지 구조 완료:** `pyproject.toml` 기반 패키징 및 CLI 설정 완료.
 *   **라이선스 파일 추가 완료:** `LICENSE` (MIT) 파일 추가.
 *   **소스 코드 GitHub 푸시 완료:** `https://github.com/JinLover/dietnb` 에 소스 코드 게시.
-*   **패키지 빌드 완료:** `dist/` 폴더에 배포용 파일 생성 완료.
-*   **PyPI 배포 완료:** v0.1.1 PyPI 등록 ([https://pypi.org/project/dietnb/0.1.1/](https://pypi.org/project/dietnb/0.1.1/))
+*   **README 개편 완료:** 사용자 중심의 간결한 README (영문/한글) 제공.
+*   **v0.1.1 PyPI 배포 완료:** [https://pypi.org/project/dietnb/0.1.1/](https://pypi.org/project/dietnb/0.1.1/)
 
-### 미구현 및 다음 단계
+### 다음 단계
+*   **v0.1.2 배포:** `python -m build` 및 `twine upload dist/*` 실행.
 *   **`pyproject.toml` 라이선스 형식 업데이트:** `project.license` 테이블 형식 사용에 대한 `setuptools` 경고 해결.
 *   **자동화 테스트:** `tests/` 디렉토리 및 `pytest` 설정은 되어 있으나, 상세 테스트 케이스 작성 필요.
 *   **JupyterLab/VS Code UI:** `dietnb_js` 구현 필요 (Toolbar 버튼, Command Palette 연동).
