@@ -23,16 +23,22 @@
     Add **one** of the following lines at the beginning of your notebook:
 
     ```python
-    # Option 1: Python call
+    # Option 1: Python call (default folder: 'dietnb_imgs' or auto-detected)
     import dietnb
     dietnb.activate() 
+
+    # Option 1a: Python call (custom folder: 'MyProject_dietnb_imgs')
+    # import dietnb
+    # dietnb.activate(folder_prefix="MyProject")
     ```
     ```python
     # Option 2: IPython magic
     %load_ext dietnb
     ```
 
-That\'s it! After activation, `matplotlib` figures generated via `plt.show()` or displayed at the end of a cell will be automatically saved to a `dietnb_imgs` folder (relative to the notebook\'s execution directory) and linked in the output, keeping your `.ipynb` file small.
+That\'s it! After activation, `matplotlib` figures generated via `plt.show()` or displayed at the end of a cell will be automatically saved to a folder and linked in the output. 
+- By default, this folder is `dietnb_imgs` (relative to the notebook\'s execution directory) or a name derived from your notebook file if auto-detection is successful.
+- If you use `dietnb.activate(folder_prefix="PREFIX")`, images will be saved to `PREFIX_dietnb_imgs`.
 
 *(Note: The `dietnb install` command for automatic activation is disabled in this version.)*
 
@@ -80,12 +86,19 @@ plt.show() # Figure is saved locally, and a link is displayed in the notebook.
 
 ## Cleaning Unused Images
 
-To remove image files no longer referenced by the current kernel:
+To remove images from a previous cell execution (or an old notebook session for a given prefix), you can call:
 
 ```python
 import dietnb
+
+# Clean for the default/auto-detected folder context
 dietnb.clean_unused()
+
+# Clean for a specific folder_prefix context
+# dietnb.clean_unused(folder_prefix="MyProject")
 ```
+
+This function will scan the relevant image directory (`dietnb_imgs`, `[notebook_name]_dietnb_imgs`, or `[prefix]_dietnb_imgs`) and delete any `.png` files that don\'t correspond to an active cell output in the current IPython session for that context.
 
 ## License
 

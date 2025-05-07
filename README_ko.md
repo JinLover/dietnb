@@ -23,16 +23,22 @@
     노트북 시작 부분에 다음 중 **하나**를 추가하세요:
 
     ```python
-    # 방법 1: 파이썬 호출
+    # 방법 1: 파이썬 호출 (기본 폴더: 'dietnb_imgs' 또는 자동 감지된 노트북 이름 기반)
     import dietnb
     dietnb.activate()
+
+    # 방법 1a: 파이썬 호출 (사용자 지정 폴더: 'MyProject_dietnb_imgs')
+    # import dietnb
+    # dietnb.activate(folder_prefix="MyProject")
     ```
     ```python
     # 방법 2: IPython 매직 명령어
     %load_ext dietnb
     ```
 
-이제 준비되었습니다! 활성화 후에는 `plt.show()`를 사용하거나 셀 마지막에서 자동으로 표시되는 `matplotlib` 그림이 노트북 실행 디렉토리 기준으로 `dietnb_imgs` 폴더에 저장되고, 출력에는 링크만 표시되어 `.ipynb` 파일 크기를 작게 유지합니다.
+이제 준비되었습니다! 활성화 후에는 `plt.show()`를 사용하거나 셀 마지막에서 자동으로 표시되는 `matplotlib` 그림이 폴더에 저장되고, 출력에는 링크만 표시됩니다.
+- 기본적으로 이 폴더는 노트북 실행 디렉토리 기준으로 `dietnb_imgs` 이거나, 자동 감지에 성공하면 노트북 파일명을 기반으로 생성됩니다.
+- 만약 `dietnb.activate(folder_prefix="PREFIX")`를 사용하면, 이미지는 `PREFIX_dietnb_imgs` 폴더에 저장됩니다.
 
 *(참고: 자동 활성화를 위한 `dietnb install` 명령어는 현재 버전에서 비활성화되었습니다.)*
 
@@ -54,14 +60,21 @@ plt.title("사인파")
 plt.show() # 그림이 로컬 파일로 저장되고 노트북에는 링크가 표시됩니다.
 ```
 
-## 미사용 이미지 정리
+## 불필요한 이미지 정리
 
-현재 커널에서 더 이상 참조되지 않는 이미지 파일들을 제거하려면 다음 코드를 실행하세요:
+이전 셀 실행에서 생성되었거나 더 이상 현재 커널 상태에 연결되지 않은 이미지 파일을 삭제하려면 다음 함수를 호출할 수 있습니다:
 
 ```python
 import dietnb
+
+# 기본/자동 감지된 폴더 컨텍스트의 이미지 정리
 dietnb.clean_unused()
+
+# 특정 folder_prefix 컨텍스트의 이미지 정리
+# dietnb.clean_unused(folder_prefix="MyProject")
 ```
+
+이 함수는 관련된 이미지 디렉토리(`dietnb_imgs`, `[노트북명]_dietnb_imgs`, 또는 `[prefix]_dietnb_imgs`)를 스캔하여 현재 IPython 세션의 해당 컨텍스트에서 활성 셀 출력과 연결되지 않은 `.png` 파일을 삭제합니다.
 
 ## 라이선스
 

@@ -13,5 +13,5 @@ def load_ipython_extension(ipython):
 def unload_ipython_extension(ipython):
     """Registers the deactivate function when the extension is unloaded."""
     logger.debug("Unloading dietnb IPython extension...")
-    deactivate(ipython)
+    deactivate(ipython_instance=ipython)
     print("dietnb extension unloaded.") 

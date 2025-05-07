@@ -9,7 +9,13 @@ pip install dietnb                 # ➊ 설치
 
 > **수동 활성화 방법** — 노트북 시작 부분에 다음 중 하나 실행:
 > ```python
-> import dietnb; dietnb.activate()
+> import dietnb
+>
+> # 기본 작동 (dietnb_imgs 또는 자동 감지된 폴더)
+> dietnb.activate()
+>
+> # 또는, 특정 프로젝트/노트북용 폴더 지정 (예: MyProject_dietnb_imgs)
+> # dietnb.activate(folder_prefix="MyProject")
 > ```
 > **또는**
 > ```python
