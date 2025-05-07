@@ -44,6 +44,34 @@
 
 ## 작동 방식
 
+**1. 자동 활성화 (`dietnb install` 사용)**
+
+IPython/Jupyter 세션을 시작할 때마다 `dietnb`가 자동으로 활성화되기를 원한다면,
+터미널에서 다음 명령어를 한 번 실행하세요:
+
+```bash
+dietnb install
+```
+그 다음, **Jupyter 커널을 재시작**하세요. `dietnb`는 모든 새 세션에서 활성화되어,
+노트북별 폴더(예: `MyNotebook_dietnb_imgs`)에 이미지를 저장하려고 시도하거나,
+노트북 경로를 결정할 수 없는 경우 `dietnb_imgs`로 대체됩니다.
+
+**2. 수동 활성화 (노트북마다)**
+
+특정 노트북에 대해서만 `dietnb`를 수동으로 활성화하거나 `folder_prefix` 옵션을 사용하고 싶다면,
+노트북 상단에 다음 코드를 추가하세요:
+
+```python
+# 방법 A: 파이썬 코드
+import dietnb
+
+# 기본 동작으로 활성화 (폴더 이름 자동 감지 시도)
+dietnb.activate()
+
+# 또는, 특정 폴더 접두사로 활성화 (예: 'MyProject_dietnb_imgs' 용)
+# dietnb.activate(folder_prefix="MyProject")
+```
+
 **사용 예시:**
 
 `dietnb` 활성화 후, 평소처럼 `matplotlib` 코드를 실행하면 됩니다:

@@ -1,19 +1,17 @@
-2025-05-07 17:38:48,320 - dietnb - INFO - dietnb activating. Figures will be saved based on notebook path or to 'dietnb_imgs'.
-2025-05-07 17:38:48,321 - dietnb - DEBUG - IPython instance: <ipykernel.zmqshell.ZMQInteractiveShell object at 0x107a24e30>
-2025-05-07 17:38:48,322 - dietnb - DEBUG - Target base folder name: dietnb_imgs
-2025-05-07 17:38:48,322 - dietnb._core - DEBUG - Applied Figure repr patches.
-2025-05-07 17:38:48,323 - dietnb - DEBUG - Unregistered previous post_run_cell handler.
-2025-05-07 17:38:48,323 - dietnb - DEBUG - Registered post_run_cell handler.
-2025-05-07 17:38:48,324 - dietnb._core - DEBUG - No active pyplot figures to close.
-2025-05-07 17:38:48,324 - dietnb._core - DEBUG - Applied Figure repr patches.
-
-2025-05-07 17:38:55,993 - dietnb._core - DEBUG - No active pyplot figures to close.
-2025-05-07 17:38:55,995 - dietnb._core - DEBUG - Applied Figure repr patches.
+2025-05-07 17:43:25,495 - dietnb._core - DEBUG - No active pyplot figures to close.
+2025-05-07 17:43:25,498 - dietnb._core - DEBUG - Applied Figure repr patches. Folder prefix: 'None'.
 The dietnb module is not an IPython extension.
 
-2025-05-07 17:39:12,438 - dietnb._core - DEBUG - ip.kernel.session.path attribute was not a valid string: 'None'
-2025-05-07 17:39:12,439 - dietnb._core - DEBUG - __vsc_ipynb_file__ global was not found or not a valid string: 'None'
-2025-05-07 17:39:12,440 - dietnb._core - DEBUG - JPY_SESSION_NAME environment variable not found or not a valid string: 'None'
-2025-05-07 17:39:12,440 - dietnb._core - INFO - Failed to detect notebook path via all methods. Falling back to default directory: /Users/taeyoung/Desktop/Programming/dietnb/dietnb_imgs
-2025-05-07 17:39:12,444 - dietnb._core - DEBUG - Removed old image: 012bc803d216_1.png in dietnb_imgs
-2025-05-07 17:39:12,517 - dietnb._core - INFO - Saved figure: dietnb_imgs/012bc803d216_1.png
+2025-05-07 17:43:07,697 - dietnb - INFO - dietnb activating. Figures will be saved based on notebook path detection or to default 'dietnb_imgs'.
+2025-05-07 17:43:07,698 - dietnb - DEBUG - IPython instance: <ipykernel.zmqshell.ZMQInteractiveShell object at 0x1047d4bc0>
+2025-05-07 17:43:07,699 - dietnb - DEBUG - User-provided folder_prefix: None
+2025-05-07 17:43:07,700 - dietnb._core - DEBUG - Applied Figure repr patches. Folder prefix: 'None'.
+2025-05-07 17:43:07,700 - dietnb - DEBUG - Unregistered previous post_run_cell handler.
+2025-05-07 17:43:07,702 - dietnb - DEBUG - Registered post_run_cell handler.
+2025-05-07 17:43:07,703 - dietnb._core - DEBUG - No active pyplot figures to close.
+2025-05-07 17:43:07,704 - dietnb._core - DEBUG - Applied Figure repr patches. Folder prefix: 'None'.
+
+2025-05-07 17:43:31,173 - dietnb._core - DEBUG - ip.kernel.session.path attribute was not a valid string: 'None'
+2025-05-07 17:43:31,173 - dietnb._core - DEBUG - Detected path via __vsc_ipynb_file__ (from user_global_ns): /Users/taeyoung/Desktop/Programming/dietnb/asdf.ipynb
+2025-05-07 17:43:31,174 - dietnb._core - INFO - Using notebook-specific image directory via __vsc_ipynb_file__ (from user_global_ns): /Users/taeyoung/Desktop/Programming/dietnb/asdf_dietnb_imgs
+2025-05-07 17:43:31,230 - dietnb._core - INFO - Saved figure: asdf_dietnb_imgs/012bc803d216_1.png

@@ -44,28 +44,32 @@ That\'s it! After activation, `matplotlib` figures generated via `plt.show()` or
 
 ## How it Works
 
-**1. Automatic Activation (Recommended)**
+**1. Automatic Activation (via `dietnb install`)**
 
-After installation, run this command in your terminal (with your virtual environment activated):
+If you want `dietnb` to activate automatically every time you start an IPython/Jupyter session,
+run this command once in your terminal:
 
 ```bash
 dietnb install
 ```
-Then, **restart your Jupyter kernel(s)**. `dietnb` will be active in all new sessions.
+Then, **restart your Jupyter kernel(s)**. `dietnb` will be active in all new sessions,
+attempting to save images to a notebook-specific folder (e.g., `MyNotebook_dietnb_imgs`)
+or falling back to `dietnb_imgs` if the notebook path cannot be determined.
 
 **2. Manual Activation (Per Notebook)**
 
-Add one of the following to the top of your notebook:
+If you prefer to activate `dietnb` manually for specific notebooks, or if you want to
+use the `folder_prefix` option, add the following to the top of your notebook:
 
 ```python
 # Option A: Python code
 import dietnb
-dietnb.activate()
-```
 
-```python
-# Option B: IPython magic
-%load_ext dietnb
+# Activate with default behavior (attempts auto-detection for folder name)
+dietnb.activate()
+
+# Or, activate with a specific folder prefix (e.g., for 'MyProject_dietnb_imgs')
+# dietnb.activate(folder_prefix="MyProject")
 ```
 
 **Example:**

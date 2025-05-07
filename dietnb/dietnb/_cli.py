@@ -4,6 +4,10 @@ import shutil
 import sys
 from pathlib import Path
 from typing import Optional
+import os # For path joining
+
+# Ensure this path is correct for your project structure
+# DIETNB_STARTUP_SCRIPT_CONTENT will be read from the _startup.py file directly
 
 logger = logging.getLogger(__name__)
 
@@ -22,36 +26,53 @@ def find_ipython_startup_dir() -> Optional[Path]:
         logger.error(f"Error finding IPython startup directory: {e}")
         return None
 
+def get_ipython_dir() -> str:
+    """Returns the IPython directory path."""
+    from IPython.paths import get_ipython_dir as ip_get_ipython_dir
+    return ip_get_ipython_dir()
+
 def install_startup_script():
     """Installs the dietnb startup script for IPython."""
-    # --- MODIFIED: Disable automatic installation --- 
-    print("'dietnb install' is currently disabled.")
-    print("Please activate dietnb manually in each notebook using:")
-    print("  import dietnb; dietnb.activate()")
-    print("or")
-    print("  %load_ext dietnb")
-    print("(Automatic startup script installation is not supported in this version.)")
-    # --- End Modification ---
+    try:
+        ipython_dir_str = get_ipython_dir()
+        if not ipython_dir_str: # Should not happen if IPython is installed
+            raise ImportError("IPython directory not found.")
+            
+        ipython_dir = Path(ipython_dir_str)
+        startup_dir = ipython_dir / "profile_default" / "startup"
+        startup_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Path to the _startup.py file within the dietnb package
+        # __file__ is the path to the current file (_cli.py)
+        # .parent gives the directory of _cli.py (dietnb/dietnb/)
+        # then we navigate to _startup.py
+        source_startup_script_path = Path(__file__).parent / "_startup.py"
 
-    # --- Original Code (Commented Out) ---
-    # try:
-    #     ipython_dir = Path(get_ipython_dir())
-    #     startup_dir = ipython_dir / "profile_default" / "startup"
-    #     startup_dir.mkdir(parents=True, exist_ok=True)
-    # 
-    #     source_path = Path(__file__).parent / "_startup.py"
-    #     target_path = startup_dir / "99-dietnb.py"
-    # 
-    #     with source_path.open("r") as source_file, target_path.open("w") as target_file:
-    #         target_file.write(source_file.read())
-    #         
-    #     print(f"dietnb startup script installed to: {target_path}")
-    #     print("Restart your IPython kernel for changes to take effect.")
-    # except Exception as e:
-    #     print(f"Error installing startup script: {e}", file=sys.stderr)
-    #     print("Please activate manually using 'import dietnb; dietnb.activate()' or '%load_ext dietnb'.", file=sys.stderr)
-    #     sys.exit(1)
-    # --- End Original Code ---
+        if not source_startup_script_path.is_file():
+            logger.error(f"Source startup script not found at {source_startup_script_path}")
+            print(f"Error: Source startup script not found. Installation failed.")
+            return
+            
+        script_name = "00-dietnb.py" # Ensure it runs early
+        target_script_path = startup_dir / script_name
+        
+        # Read content from source and write to target
+        with open(source_startup_script_path, "r") as src_f, open(target_script_path, "w") as dest_f:
+            dest_f.write(src_f.read())
+        
+        print(f"dietnb startup script installed to: {target_script_path}")
+        print("Please restart your IPython/Jupyter kernel for changes to take effect.")
+        print("dietnb will now attempt to activate automatically.")
+        print("If you need to specify a folder_prefix, please use manual activation:")
+        print("  import dietnb; dietnb.activate(folder_prefix=\"MyProject\")")
+        logger.info(f"Startup script '{script_name}' written to '{startup_dir}' from '{source_startup_script_path}'.")
+
+    except ImportError:
+        print("IPython is not installed or not found. Cannot install startup script.")
+        logger.error("IPython not found, cannot install startup script.")
+    except Exception as e:
+        print(f"Error installing dietnb startup script: {e}")
+        logger.error(f"Failed to install startup script: {e}", exc_info=True)
 
 def main():
     parser = argparse.ArgumentParser(description="dietnb command line utility.")

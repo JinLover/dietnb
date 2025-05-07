@@ -1,28 +1,16 @@
+import dietnb
 import logging
-import sys
 
-logger = logging.getLogger(__name__)
+# Configure a basic logger for the startup script itself to aid debugging if needed.
+logger = logging.getLogger("dietnb_startup")
 
+# Attempt to activate dietnb
 try:
-    # Check if running in an IPython session
-    # This check might be refined depending on exact context where startup scripts run
-    from IPython import get_ipython
-    ip = get_ipython()
-    if ip:
-        logger.debug("Importing dietnb in IPython startup script.")
-        try:
-            import dietnb
-            dietnb.activate()
-            logger.info("dietnb activated automatically via startup script.")
-        except ImportError:
-            logger.error("Failed to import dietnb. Ensure it is installed.")
-        except Exception as e:
-            logger.error(f"Error activating dietnb during startup: {e}")
-    else:
-        logger.debug("Not an IPython session, dietnb startup script skipped.")
-except ImportError:
-    # IPython itself is not available
-    logger.debug("IPython not found, dietnb startup script skipped.")
+    dietnb.activate() # Call activate without folder_prefix for auto-detection
+    logger.info("dietnb auto-activated via startup script.")
+    # You can print a message to the console if desired, but it might be verbose for a startup script.
+    # print("[dietnb] Auto-activated. Matplotlib figures will be saved externally.")
 except Exception as e:
-    # Catch any other unexpected errors during startup check
-    logger.error(f"Unexpected error in dietnb startup script: {e}", exc_info=True) 
+    logger.error(f"Error auto-activating dietnb via startup script: {e}", exc_info=True)
+    # Optionally, print a warning to the console so the user is aware of the failure.
+    # print(f"[dietnb] Warning: Failed to auto-activate: {e}") 
