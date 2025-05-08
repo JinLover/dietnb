@@ -1,4 +1,4 @@
-# `dietnb` — The "Notebook Bloat" Instant Diet Pill
+# `dietnb`
 
 [![PyPI version](https://badge.fury.io/py/dietnb.svg)](https://badge.fury.io/py/dietnb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
