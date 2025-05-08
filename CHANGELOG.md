@@ -7,5 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-05-08 
 ### Added
-- Initial project setup. 
+- Added `dietnb uninstall` command to remove the startup script.
+- Established `dev` and `release` branch strategy for git workflow.
+- Created `CHANGELOG.md` to document project changes.

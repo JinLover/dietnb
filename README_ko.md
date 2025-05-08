@@ -1,4 +1,4 @@
-# `dietnb` (v0.1.2)
+# **`dietnb` (v0.1.3) — "Notebook 비만" 즉시 해소 패키지**
 
 [![PyPI version](https://badge.fury.io/py/dietnb.svg)](https://badge.fury.io/py/dietnb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -44,10 +44,10 @@ pip install dietnb
 
    **B. 수동 활성화 (노트북마다 적용)**
    특정 노트북에서만 `dietnb`를 사용하거나 자동 활성화를 원치 않을 경우, 노트북 상단에 다음 코드를 추가하여 수동으로 활성화할 수 있습니다:
-   ```python
+```python
    import dietnb
    dietnb.activate()
-   ```
+```
 
 ---
 
