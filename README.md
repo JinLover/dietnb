@@ -33,7 +33,14 @@ pip install dietnb
    ```bash
    dietnb install
    ```
+   This creates a startup script (`00-dietnb.py`) in your IPython profile directory.
    After restarting your Jupyter kernel, `dietnb` will be activated automatically. Images will be saved to a folder based on the notebook's path or to the default `dietnb_imgs` directory.
+
+   To **disable** automatic activation later, run:
+   ```bash
+   dietnb uninstall
+   ```
+   This removes the startup script.
 
    **B. Manual Activation (Per Notebook)**
    If you prefer to use `dietnb` only for specific notebooks or do not want automatic activation, add the following code at the top of your notebook to activate it manually:

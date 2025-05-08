@@ -66,6 +66,37 @@ def install_startup_script():
         print(f"Error installing dietnb startup script: {e}", file=sys.stderr)
         return False
 
+def uninstall_startup_script():
+    """Uninstalls the dietnb startup script for IPython."""
+    try:
+        startup_dir = find_ipython_startup_dir()
+        if not startup_dir:
+            print("IPython startup directory not found. Cannot uninstall script.", file=sys.stderr)
+            return False
+        
+        script_name = "00-dietnb.py"
+        target_script_path = startup_dir / script_name
+
+        if target_script_path.is_file():
+            try:
+                target_script_path.unlink()
+                print(f"dietnb startup script removed from: {target_script_path}")
+                print("Changes will take effect the next time you start IPython/Jupyter.")
+                return True
+            except OSError as e:
+                print(f"Error removing startup script {target_script_path}: {e}", file=sys.stderr)
+                return False
+        else:
+            print(f"dietnb startup script not found at {target_script_path}. Nothing to uninstall.")
+            return True # It's not an error if the file isn't there
+            
+    except ImportError: # Should be caught by find_ipython_startup_dir, but double-check
+        print("IPython is not installed or not found. Cannot uninstall startup script.", file=sys.stderr)
+        return False
+    except Exception as e:
+        print(f"Error uninstalling dietnb startup script: {e}", file=sys.stderr)
+        return False
+
 def main():
     parser = argparse.ArgumentParser(description="dietnb command line utility.")
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
@@ -73,6 +104,10 @@ def main():
     # Install command
     parser_install = subparsers.add_parser('install', help='Install the IPython startup script for automatic activation.')
     parser_install.set_defaults(func=install_startup_script)
+
+    # Uninstall command
+    parser_uninstall = subparsers.add_parser('uninstall', help='Uninstall the IPython startup script.')
+    parser_uninstall.set_defaults(func=uninstall_startup_script)
 
     args = parser.parse_args()
 

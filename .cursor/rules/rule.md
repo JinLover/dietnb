@@ -32,6 +32,7 @@
 ```bash
 pip install dietnb                 # ➊ 설치
 dietnb install                     # ➋ 자동 스타트업 스크립트 등록 (권장)
+# dietnb uninstall                   # (선택) 자동 스타트업 스크립트 제거
 ```
 
 *`dietnb install` 실행 및 커널 재시작 후에는 대부분의 환경에서 `dietnb`가 자동으로 활성화됩니다.*
@@ -64,7 +65,7 @@ dietnb/
 │  ├─ __init__.py         # public API: activate(), deactivate(), clean_unused()
 │  ├─ _core.py            # Figure 저장/링크 핵심 로직, 상태 관리, 경로 감지
 │  ├─ _startup.py         # `dietnb install` 시 복사될 IPython 스타트업 스크립트 내용
-│  └─ _cli.py             # `dietnb install` 명령어 처리 로직 (main 함수)
+│  └─ _cli.py             # `dietnb install/uninstall` 명령어 처리 로직 (main 함수)
 ├─ dietnb_js/             # Lab/VSC UI (선택, **미구현**)
 ├─ tests/                 # 자동화 테스트 (pytest, **기본 설정만 완료**)
 ├─ README.md
@@ -102,7 +103,7 @@ version         = \"0.1.2\"
 ### 현재 상태 (v0.1.2) - PyPI 배포 완료
 *   **핵심 기능 단순화:** `folder_prefix` 옵션 제거. 자동 경로 감지 또는 기본 폴더 사용으로 통일.
 *   **노트북별 폴더 자동 감지 (VS Code):** VS Code 환경에서 노트북 파일명 기반 폴더 생성 및 이미지 저장 확인.
-*   **CLI `dietnb install` 동작:** IPython 시작 시 `dietnb.activate()` 자동 실행.
+*   **CLI `dietnb install`/`uninstall` 동작:** IPython 시작 스크립트 설치/제거 기능 구현.
 *   **로깅 제거:** 코드 내 모든 로깅 호출 제거.
 *   **문서 업데이트:** 단순화된 사용법 및 폴더 로직 반영. README 사용자 친화적으로 개선.
 *   **라이선스 파일 추가 완료.**
