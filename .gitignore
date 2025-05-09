@@ -1,8 +1,3 @@
-# Byte-compiled / optimized files
-__pycache__/
-*.py[cod]
-*.pyo
-
 # Distribution / packaging
 build/
 dist/
@@ -11,18 +6,10 @@ dist/
 # Environments
 .venv/
 
-# IDE / Editor specific
-.vscode/
-.idea/
+# test folder
+test/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb
-
-# DietNB specific output
-dietnb_imgs/
-
-# Cursor specific
+# cursor
 .cursor/
 
 # Operating System generated files
