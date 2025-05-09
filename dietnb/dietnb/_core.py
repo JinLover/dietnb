@@ -149,14 +149,18 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     absolute_image_path_str = str(filepath.resolve())
     
     # URL-encode the absolute file system path.
-    # For example, /Users/... becomes %2FUsers%2F...
+    # quote typically preserves leading slashes if they are part of the path.
     encoded_absolute_fpath_segment = quote(absolute_image_path_str)
     
     # Construct the src attribute value.
-    # It starts with /files/, followed by the URL-encoded absolute file system path,
-    # and then the cache-busting query string.
-    # Example: /files/%2FUsers%2Fname%2Fpath%2Fto%2Fimage.png?v=123
-    img_src = f"/files/{encoded_absolute_fpath_segment}?v={exec_count}"
+    # Ensure there's only one slash between "/files" and the encoded path.
+    # If encoded_absolute_fpath_segment starts with '/', /files{encoded_path} is correct.
+    # If it doesn't (e.g., if quote changed / to %2F), then /files/{encoded_path} is correct.
+    # Given quote's default behavior for paths, it usually starts with '/'.
+    if encoded_absolute_fpath_segment.startswith("/"):
+        img_src = f"/files{encoded_absolute_fpath_segment}?v={exec_count}"
+    else:
+        img_src = f"/files/{encoded_absolute_fpath_segment}?v={exec_count}"
     
     return f'<img src="{img_src}" alt="{filename}" style="max-width:100%;">'
 
