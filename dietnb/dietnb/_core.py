@@ -142,25 +142,65 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     except Exception:
         return None # Indicate failure
 
-    # --- MODIFIED SRC PATH LOGIC ---
-    # filepath is a Path object representing the absolute path to the saved image.
-    # Example: /Users/name/project/notebook_dietnb_imgs/image.png
+    # --- NEW SRC PATH LOGIC (ENVIRONMENT-AWARE) ---
+    img_src_path_segment: str
+    
+    # Try to detect VS Code environment
+    vsc_notebook_file_path_str = ip.user_global_ns.get("__vsc_ipynb_file__")
 
-    absolute_image_path_str = str(filepath.resolve())
-    
-    # URL-encode the absolute file system path.
-    # quote typically preserves leading slashes if they are part of the path.
-    encoded_absolute_fpath_segment = quote(absolute_image_path_str)
-    
-    # Construct the src attribute value.
-    # Ensure there's only one slash between "/files" and the encoded path.
-    # If encoded_absolute_fpath_segment starts with '/', /files{encoded_path} is correct.
-    # If it doesn't (e.g., if quote changed / to %2F), then /files/{encoded_path} is correct.
-    # Given quote's default behavior for paths, it usually starts with '/'.
-    if encoded_absolute_fpath_segment.startswith("/"):
-        img_src = f"/files{encoded_absolute_fpath_segment}?v={exec_count}"
+    if vsc_notebook_file_path_str and isinstance(vsc_notebook_file_path_str, str):
+        # VS Code Environment: Use filesystem relative path
+        try:
+            current_notebook_abs_path = Path(vsc_notebook_file_path_str).resolve()
+            current_notebook_dir_abs = current_notebook_abs_path.parent
+            
+            # Calculate path of image relative to the notebook's directory
+            rel_path_os = os.path.relpath(filepath.resolve(), start=current_notebook_dir_abs)
+            # Convert to URL-friendly path (forward slashes)
+            img_src_path_segment = str(Path(rel_path_os)).replace(os.sep, '/')
+        except ValueError: 
+            # Fallback if relpath fails (e.g. different drives on Windows, though less likely for VSCode local files)
+            # Use a simpler relative path assuming image_dir is relative to CWD which is notebook dir.
+            # This is less robust.
+            img_src_path_segment = f"{image_dir.name}/{filename}"
+        except Exception:
+             # Generic fallback
+            img_src_path_segment = f"{image_dir.name}/{filename}"
     else:
-        img_src = f"/files/{encoded_absolute_fpath_segment}?v={exec_count}"
+        # Web Jupyter Environment (or other non-VSCode IPython console)
+        # Use /files/ prefix with path relative to Jupyter server's content root.
+        # We assume os.getcwd() is the server's content root when the kernel started.
+        try:
+            server_content_root = Path(os.getcwd()).resolve()
+            image_abs_path = filepath.resolve()
+            path_relative_to_server_root = image_abs_path.relative_to(server_content_root)
+            
+            # URL-encode the path segment that comes after /files/
+            # (e.g., test/jupyer_test_dietnb_imgs/image.png)
+            # quote typically handles spaces, special characters correctly for URL path segments.
+            # It does not encode '/' by default, which is usually desired here.
+            encoded_path_segment = quote(str(path_relative_to_server_root))
+            img_src_path_segment = f"/files/{encoded_path_segment}"
+            
+        except ValueError: # If image_abs_path is not under server_content_root
+            # This indicates a potential issue with image_dir calculation or CWD assumption.
+            # Fallback: Use the absolute path with /files/ and hope VSCode/Jupyter can handle it.
+            # This was the previous problematic approach for VSCode but might be better than nothing.
+            encoded_abs_path = quote(str(filepath.resolve()))
+            if encoded_abs_path.startswith("/"):
+                 img_src_path_segment = f"/files{encoded_abs_path}"
+            else:
+                 img_src_path_segment = f"/files/{encoded_abs_path}"
+        except Exception:
+            # Generic fallback
+            encoded_abs_path = quote(str(filepath.resolve()))
+            if encoded_abs_path.startswith("/"):
+                 img_src_path_segment = f"/files{encoded_abs_path}"
+            else:
+                 img_src_path_segment = f"/files/{encoded_abs_path}"
+
+    # Add cache-busting query string
+    img_src = f"{img_src_path_segment}?v={exec_count}"
     
     return f'<img src="{img_src}" alt="{filename}" style="max-width:100%;">'
 
