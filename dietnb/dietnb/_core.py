@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 import time
 import os
-from urllib.parse import quote
+from urllib.parse import quote, urljoin
 import json
 
 # Attempt to import notebook and requests for get_jupyter_root_dir
@@ -46,8 +46,8 @@ def get_jupyter_root_dir():
     try:
         for srv in notebookapp.list_running_servers():
             try:
-                # Correctly join URL parts
-                sessions_url = urllib.parse.urljoin(srv['url'], 'api/sessions')
+                # Correctly join URL parts using urllib.parse.urljoin
+                sessions_url = urljoin(srv['url'], 'api/sessions')
                 token = srv.get("token", "")
                 if token:
                     sessions_url += f"?token={token}"
