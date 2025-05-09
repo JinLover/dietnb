@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2025-05-09
+### Changed
+- Fix bug on `jupyter notebook` environment
+
 ## [0.1.4] - 2025-05-08
 ### Changed
 - Updated `README.md`.

@@ -1,16 +1,14 @@
 import hashlib
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 import time
 import os
-from urllib.parse import quote
 
 # Removed imports for notebook and requests
 # import matplotlib.pyplot as plt # This should be kept
 # from IPython import get_ipython # This should be kept
 # from matplotlib.figure import Figure # This should be kept
 
-# Re-import if they were removed by previous comment formatting by mistake
 import matplotlib.pyplot as plt
 from IPython import get_ipython
 from matplotlib.figure import Figure
@@ -20,8 +18,6 @@ _state = {}  # Stores {cell_key: last_exec_count}
 _patch_applied = False
 
 DEFAULT_FOLDER_NAME = "dietnb_imgs"
-
-# get_jupyter_root_dir function will be removed.
 
 def _get_notebook_image_dir(ip_instance, base_folder_name=DEFAULT_FOLDER_NAME) -> Path:
     """Determines the target image directory.
@@ -150,11 +146,6 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     except Exception:
         return None # Indicate failure
 
-    # --- REVERT TO SIMPLEST SRC PATH LOGIC ---
-    # image_dir is the Path object for the image directory, e.g., <...>/test/jupyer_test_dietnb_imgs
-    # filename is the image file name, e.g., a94c61073fd9_1.png
-    
-    # The src path should be relative like "jupyer_test_dietnb_imgs/a94c61073fd9_1.png"
     img_src_base = f"{image_dir.name}/{filename}"
     
     final_img_src = img_src_base # Default: no query string for web Jupyter as per user feedback
