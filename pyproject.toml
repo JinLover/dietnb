@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name            = "dietnb"
 version         = "0.1.4"
-description     = "Instantly reduce Jupyter Notebook obesity caused by matplotlib figures."
+description     = "Automatically save matplotlib figures to files and link them in Jupyter notebooks instead of embedding them."
 readme          = "README.md"
 license         = {text = "MIT"}
-authors         = [{name = "JinLover", email = "jinlover@example.com"}]
+authors         = [{name = "JinLover"}]
 requires-python = ">=3.8"
 classifiers     = [
     "Programming Language :: Python :: 3",
