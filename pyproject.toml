@@ -5,18 +5,29 @@ build-backend = "setuptools.build_meta"
 [project]
 name            = "dietnb"
 version         = "0.1.4"
-description     = "Automatically save matplotlib figures to files and link them in Jupyter notebooks instead of embedding them."
+description     = "Instantly reduce Jupyter Notebook obesity caused by matplotlib figures."
 readme          = "README.md"
 license         = {text = "MIT"}
-authors         = [{name = "JinLover"}]
+authors         = [{name = "JinLover", email = "朴泰映@진사랑.닷컴"}]
 requires-python = ">=3.8"
-dependencies    = ["ipython>=8", "matplotlib>=3.5"]
+classifiers     = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Framework :: IPython",
+    "Framework :: Jupyter",
+    "Topic :: Utilities",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+]
+dependencies    = ["ipython>=8", "matplotlib>=3.5", "notebook", "requests"]
 
 [project.scripts]
 dietnb = "dietnb._cli:main"         # Creates the 'dietnb' command
 
 [project.urls]
 Homepage = "https://github.com/JinLover/dietnb"
+"Bug Tracker" = "https://github.com/JinLover/dietnb/issues"
 
 # Removed package-dir section
 
@@ -28,4 +39,7 @@ where = ["dietnb"]
 dev = [
     "pytest>=7.0",
     "pytest-mock>=3.10"
-] 
+]
+
+[tool.setuptools.package-data]
+dietnb = ["_startup.py"] 
