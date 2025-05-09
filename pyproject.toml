@@ -32,8 +32,8 @@ Homepage = "https://github.com/JinLover/dietnb"
 # Removed package-dir section
 
 [tool.setuptools.packages.find]
-# Tell find to look *inside* the 'dietnb' directory for packages
-where = ["dietnb"]
+# Tell find to look *inside* the '.' directory for packages
+where = ["."]
 
 [project.optional-dependencies]
 dev = [
