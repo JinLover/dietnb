@@ -155,10 +155,20 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     # filename is the image file name, e.g., a94c61073fd9_1.png
     
     # The src path should be relative like "jupyer_test_dietnb_imgs/a94c61073fd9_1.png"
-    img_src = f"{image_dir.name}/{filename}"
+    img_src_base = f"{image_dir.name}/{filename}"
     
-    # No /files/ prefix, no query string
-    return f'<img src="{img_src}" alt="{filename}" style="max-width:100%;">'
+    final_img_src = img_src_base # Default: no query string for web Jupyter as per user feedback
+
+    # Check if running in VS Code to add cache-busting query string specifically for it
+    # ip is the IPython instance passed to _save_figure_and_get_html
+    if ip and hasattr(ip, 'user_global_ns'):
+        vsc_notebook_file_path_str = ip.user_global_ns.get("__vsc_ipynb_file__")
+        if vsc_notebook_file_path_str and isinstance(vsc_notebook_file_path_str, str):
+            # It's VS Code, add query string for cache busting
+            final_img_src = f"{img_src_base}?v={exec_count}"
+    
+    # No /files/ prefix
+    return f'<img src="{final_img_src}" alt="{filename}" style="max-width:100%;">'
 
 def _no_op_repr_png(fig: Figure):
     """Prevents the default PNG representation."""
