@@ -138,7 +138,7 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
         # Increment index for multiple figures in the same cell execution
         idx = len(list(image_dir.glob(f"{key}_*.{fmt}"))) + 1
 
-    filename = f"{key}_{idx}.{fmt}"
+    filename = f"{key}_{idx}_{exec_count}.{fmt}"
     filepath = image_dir / filename
 
     try:
@@ -156,7 +156,7 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
         vsc_notebook_file_path_str = ip.user_global_ns.get("__vsc_ipynb_file__")
         if vsc_notebook_file_path_str and isinstance(vsc_notebook_file_path_str, str):
             # It's VS Code, add query string for cache busting
-            final_img_src = f"{img_src_base}?v={exec_count}"
+            final_img_src = f"{img_src_base}"
     
     # No /files/ prefix
     return f'<img src="{final_img_src}" alt="{filename}" style="max-width:100%;">'
