@@ -8,7 +8,7 @@ version         = "0.1.4"
 description     = "Instantly reduce Jupyter Notebook obesity caused by matplotlib figures."
 readme          = "README.md"
 license         = {text = "MIT"}
-authors         = [{name = "JinLover", email = "朴泰映@진사랑.닷컴"}]
+authors         = [{name = "JinLover", email = "jinlover@example.com"}]
 requires-python = ">=3.8"
 classifiers     = [
     "Programming Language :: Python :: 3",
