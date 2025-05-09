@@ -4,6 +4,15 @@ from typing import Optional, Tuple
 import time
 import os
 from urllib.parse import quote
+import json
+
+# Attempt to import notebook and requests for get_jupyter_root_dir
+try:
+    from notebook import notebookapp
+    import requests
+except ImportError:
+    notebookapp = None
+    requests = None
 
 import matplotlib.pyplot as plt
 from IPython import get_ipython
@@ -14,6 +23,49 @@ _state = {}  # Stores {cell_key: last_exec_count}
 _patch_applied = False
 
 DEFAULT_FOLDER_NAME = "dietnb_imgs"
+
+# Function to get Jupyter server's root directory
+# Moved before _get_notebook_image_dir for logical grouping if preferred, or ensure it's at module level
+def get_jupyter_root_dir():
+    """Returns the root directory path of the Jupyter server connected to the current kernel."""
+    # Ensure get_ipython() can be called here, or it needs to be passed if used in a context where it's not global
+    current_ipython_instance = get_ipython() # Explicitly get it for this function context
+    if not notebookapp or not requests or not current_ipython_instance: # Check for dependencies and IPython
+        return None
+
+    try:
+        kernel_config = current_ipython_instance.config
+        if not kernel_config or "IPKernelApp" not in kernel_config or "connection_file" not in kernel_config["IPKernelApp"]:
+            return None
+        connection_file_path = kernel_config["IPKernelApp"]["connection_file"]
+        # Use os.path.splitext for robustness in getting the stem for various kernel file name patterns
+        connection_file_name_stem = Path(connection_file_path).stem.replace("kernel-", "")
+    except Exception:
+        return None # Error getting connection file info
+
+    try:
+        for srv in notebookapp.list_running_servers():
+            try:
+                # Correctly join URL parts
+                sessions_url = urllib.parse.urljoin(srv['url'], 'api/sessions')
+                token = srv.get("token", "")
+                if token:
+                    sessions_url += f"?token={token}"
+                
+                r = requests.get(sessions_url, timeout=3) 
+                r.raise_for_status() 
+                sessions = r.json()
+
+                for sess in sessions:
+                    if 'kernel' in sess and 'id' in sess['kernel'] and \
+                       sess['kernel']['id'] == connection_file_name_stem: # Exact match preferred if stem is just the ID
+                        return srv.get('notebook_dir') 
+            except (requests.RequestException, ValueError, KeyError, AttributeError, json.JSONDecodeError):
+                continue 
+    except Exception:
+        return None
+    
+    return None
 
 def _get_notebook_image_dir(ip_instance, base_folder_name=DEFAULT_FOLDER_NAME) -> Path:
     """Determines the target image directory.
@@ -142,10 +194,9 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     except Exception:
         return None # Indicate failure
 
-    # --- NEW SRC PATH LOGIC (ENVIRONMENT-AWARE) ---
+    # --- NEW SRC PATH LOGIC (ENVIRONMENT-AWARE + JUPYTER ROOT DETECTION) ---
     img_src_path_segment: str
     
-    # Try to detect VS Code environment
     vsc_notebook_file_path_str = ip.user_global_ns.get("__vsc_ipynb_file__")
 
     if vsc_notebook_file_path_str and isinstance(vsc_notebook_file_path_str, str):
@@ -153,55 +204,35 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
         try:
             current_notebook_abs_path = Path(vsc_notebook_file_path_str).resolve()
             current_notebook_dir_abs = current_notebook_abs_path.parent
-            
-            # Calculate path of image relative to the notebook's directory
             rel_path_os = os.path.relpath(filepath.resolve(), start=current_notebook_dir_abs)
-            # Convert to URL-friendly path (forward slashes)
             img_src_path_segment = str(Path(rel_path_os)).replace(os.sep, '/')
-        except ValueError: 
-            # Fallback if relpath fails (e.g. different drives on Windows, though less likely for VSCode local files)
-            # Use a simpler relative path assuming image_dir is relative to CWD which is notebook dir.
-            # This is less robust.
-            img_src_path_segment = f"{image_dir.name}/{filename}"
-        except Exception:
-             # Generic fallback
+        except Exception: # Broad catch for any error in VSCode path logic
             img_src_path_segment = f"{image_dir.name}/{filename}"
     else:
         # Web Jupyter Environment (or other non-VSCode IPython console)
-        # Use /files/ prefix with path relative to Jupyter server's content root.
-        # We assume os.getcwd() is the server's content root when the kernel started.
-        try:
-            server_content_root = Path(os.getcwd()).resolve()
-            image_abs_path = filepath.resolve()
-            path_relative_to_server_root = image_abs_path.relative_to(server_content_root)
-            
-            # URL-encode the path segment that comes after /files/
-            # (e.g., test/jupyer_test_dietnb_imgs/image.png)
-            # quote typically handles spaces, special characters correctly for URL path segments.
-            # It does not encode '/' by default, which is usually desired here.
-            encoded_path_segment = quote(str(path_relative_to_server_root))
-            img_src_path_segment = f"/files/{encoded_path_segment}"
-            
-        except ValueError: # If image_abs_path is not under server_content_root
-            # This indicates a potential issue with image_dir calculation or CWD assumption.
-            # Fallback: Use the absolute path with /files/ and hope VSCode/Jupyter can handle it.
-            # This was the previous problematic approach for VSCode but might be better than nothing.
-            encoded_abs_path = quote(str(filepath.resolve()))
-            if encoded_abs_path.startswith("/"):
-                 img_src_path_segment = f"/files{encoded_abs_path}"
-            else:
-                 img_src_path_segment = f"/files/{encoded_abs_path}"
-        except Exception:
-            # Generic fallback
-            encoded_abs_path = quote(str(filepath.resolve()))
-            if encoded_abs_path.startswith("/"):
-                 img_src_path_segment = f"/files{encoded_abs_path}"
-            else:
-                 img_src_path_segment = f"/files/{encoded_abs_path}"
+        server_root_dir_str = get_jupyter_root_dir()
+        
+        if server_root_dir_str:
+            try:
+                server_root_path = Path(server_root_dir_str).resolve()
+                image_abs_path = filepath.resolve()
+                path_relative_to_server_root = image_abs_path.relative_to(server_root_path)
+                encoded_path_segment = quote(str(path_relative_to_server_root))
+                img_src_path_segment = f"/files/{encoded_path_segment}"
+            except Exception: 
+                try:
+                    path_relative_to_cwd = filepath.resolve().relative_to(Path(os.getcwd()).resolve())
+                    img_src_path_segment = f"/files/{quote(str(path_relative_to_cwd))}"
+                except Exception:
+                    img_src_path_segment = f"/files/{quote(image_dir.name)}/{quote(filename)}"
+        else:
+            try:
+                path_relative_to_cwd = filepath.resolve().relative_to(Path(os.getcwd()).resolve())
+                img_src_path_segment = f"/files/{quote(str(path_relative_to_cwd))}"
+            except Exception:
+                img_src_path_segment = f"/files/{quote(image_dir.name)}/{quote(filename)}"
 
-    # Add cache-busting query string
     img_src = f"{img_src_path_segment}?v={exec_count}"
-    
     return f'<img src="{img_src}" alt="{filename}" style="max-width:100%;">'
 
 def _no_op_repr_png(fig: Figure):
