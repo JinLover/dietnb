@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 import time
 import os
+from urllib.parse import quote
 
 import matplotlib.pyplot as plt
 from IPython import get_ipython
@@ -141,10 +142,23 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     except Exception:
         return None # Indicate failure
 
-    # Return HTML linking to the saved image with cache busting
-    # Use relative path *from notebook's perspective* (assuming kernel CWD = notebook dir)
-    rel_path = f"{image_dir.name}/{filename}" # Use the determined directory name
-    return f'<img src="{rel_path}?v={exec_count}" alt="{filename}" style="max-width:100%;">'
+    # --- MODIFIED SRC PATH LOGIC ---
+    # filepath is a Path object representing the absolute path to the saved image.
+    # Example: /Users/name/project/notebook_dietnb_imgs/image.png
+
+    absolute_image_path_str = str(filepath.resolve())
+    
+    # URL-encode the absolute file system path.
+    # For example, /Users/... becomes %2FUsers%2F...
+    encoded_absolute_fpath_segment = quote(absolute_image_path_str)
+    
+    # Construct the src attribute value.
+    # It starts with /files/, followed by the URL-encoded absolute file system path,
+    # and then the cache-busting query string.
+    # Example: /files/%2FUsers%2Fname%2Fpath%2Fto%2Fimage.png?v=123
+    img_src = f"/files/{encoded_absolute_fpath_segment}?v={exec_count}"
+    
+    return f'<img src="{img_src}" alt="{filename}" style="max-width:100%;">'
 
 def _no_op_repr_png(fig: Figure):
     """Prevents the default PNG representation."""
