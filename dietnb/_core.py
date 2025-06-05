@@ -259,22 +259,26 @@ def _clean_unused_images_logic() -> dict:
 
     for img_file in image_dir.glob("*.png"):
         try:
-            # Extract key (hash part) from filename like 'hash_idx.png'
-            key_part = img_file.stem.split('_')[0]
-            if key_part not in current_keys_in_state:
-                try:
-                    img_file.unlink()
-                    deleted_files.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
-                    cleaned_count += 1
-                except OSError:
-                    failed_deletions.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
-                    failed_count += 1
+            # Extract key from filename like 'exec_count_idx_key.png'
+            parts = img_file.stem.split('_')
+            if len(parts) >= 3:
+                key_part = parts[-1] # Key is the last part
+                if key_part not in current_keys_in_state:
+                    try:
+                        img_file.unlink()
+                        deleted_files.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
+                        cleaned_count += 1
+                    except OSError:
+                        failed_deletions.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
+                        failed_count += 1
+                else:
+                    kept_files.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
+                    kept_count += 1
             else:
+                # Filename doesn't match expected format, keep it
                 kept_files.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
                 kept_count += 1
-        except IndexError:
-            kept_files.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
-            kept_count += 1 # Treat as kept if format is unexpected
+
         except Exception:
             failed_deletions.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
             failed_count += 1
