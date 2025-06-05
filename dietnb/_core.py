@@ -136,7 +136,17 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
         idx = 1
     else:
         # Increment index for multiple figures in the same cell execution
-        idx = len(list(image_dir.glob(f"{key}_*.{fmt}"))) + 1
+        # The pattern must match the new filename format: {exec_count}_*_{key}.png
+        # We need to find the max index for the current exec_count and key
+        
+        # A more robust way to find the next index
+        existing_indices = [
+            int(f.stem.split('_')[1])
+            for f in image_dir.glob(f"{exec_count}_*_{key}.png")
+            if f.stem.split('_')[1].isdigit()
+        ]
+        idx = max(existing_indices) + 1 if existing_indices else 1
+
 
     # Filename format: {exec_count}_{fig_index}_{cell_key}.png
     filename = f"{exec_count}_{idx}_{key}.png"
