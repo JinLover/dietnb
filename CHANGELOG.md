@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [0.1.7] - 2025-06-05
+### Changed
+- Filename format changed from `{key}_{idx}_{exec_count}.png` to `{exec_count}_{idx}_{key}.png`
+
 ## [0.1.6] - 2025-05-09
 ### Changed
 - Fix bug due to project directory changed

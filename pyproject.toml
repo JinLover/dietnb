@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name            = "dietnb"
-version         = "0.1.6"
+version         = "0.1.7"
 description     = "Automatically save matplotlib figures to files and link them in Jupyter notebooks instead of embedding them."
 readme          = "README.md"
 license         = {text = "MIT"}
