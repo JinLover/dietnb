@@ -127,7 +127,7 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
 
     # Clean up images from previous execution of the same cell *in the same directory*
     if _state.get(state_key) != exec_count:
-        for old_file in image_dir.glob(f"{key}_*.{fmt}"):
+        for old_file in image_dir.glob(f"*_*_{key}.png"):
             try:
                 old_file.unlink()
             except OSError:
@@ -138,7 +138,8 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
         # Increment index for multiple figures in the same cell execution
         idx = len(list(image_dir.glob(f"{key}_*.{fmt}"))) + 1
 
-    filename = f"{key}_{idx}_{exec_count}.{fmt}"
+    # Filename format: {exec_count}_{fig_index}_{cell_key}.png
+    filename = f"{exec_count}_{idx}_{key}.png"
     filepath = image_dir / filename
 
     try:
