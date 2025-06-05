@@ -280,6 +280,7 @@ def _clean_unused_images_logic() -> dict:
                 kept_count += 1
 
         except Exception:
+            # Catch any other parsing errors and keep the file
             failed_deletions.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
             failed_count += 1
 
