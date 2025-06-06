@@ -2,6 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/dietnb.svg)](https://badge.fury.io/py/dietnb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Buy Me A Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow?logo=buymeacoffee)](https://coff.ee/jinlover)
 
 `dietnb` addresses the issue of large `.ipynb` file sizes caused by `matplotlib` figures being embedded as Base64 data. By saving plots as external PNG files and embedding only image links, `dietnb` keeps your notebooks lightweight and improves manageability.
 
