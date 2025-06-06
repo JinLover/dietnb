@@ -2,6 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/dietnb.svg)](https://badge.fury.io/py/dietnb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Buy Me A Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow?logo=buymeacoffee)](https://coff.ee/jinlover)
 
 `dietnb`는 Jupyter 노트북 사용 시 `matplotlib` 그래프가 파일 내부에 Base64로 저장되어 `.ipynb` 파일 크기가 커지는 문제를 해결합니다. `dietnb`는 그래프를 로컬 PNG 파일로 저장하고 노트북에는 이미지 링크만 삽입하여, 노트북 파일을 가볍게 유지하고 관리 효율성을 높입니다.
 
