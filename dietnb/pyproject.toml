@@ -1,18 +1,17 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name            = "dietnb"
 version         = "0.2.0"
 description     = "Automatically save matplotlib figures to files and link them in Jupyter notebooks instead of embedding them."
-readme          = "README.md"
-license         = "MIT"
-authors         = [{name = "JinLover"}]
+readme          = { file = "README.md", content-type = "text/markdown" }
+license         = { file = "LICENSE" }
+authors         = [{ name = "JinLover" }]
 requires-python = ">=3.8"
 classifiers     = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Framework :: IPython",
     "Framework :: Jupyter",
@@ -26,28 +25,17 @@ dependencies    = [
 ]
 
 [project.scripts]
-dietnb = "dietnb._cli:main"         # Creates the 'dietnb' command
+dietnb = "dietnb._cli:main"
 
 [project.urls]
 Homepage = "https://github.com/JinLover/dietnb"
 "Bug Tracker" = "https://github.com/JinLover/dietnb/issues"
 
-# Removed package-dir section
+[tool.setuptools]
+license-files = ["LICENSE"]
 
 [tool.setuptools.packages.find]
-# Tell find to look *inside* the '.' directory for packages
 where = ["."]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-mock>=3.10",
-    "qtconsole>=5.5",
-    "PyQt6"
-]
 
 [tool.setuptools.package-data]
 dietnb = ["_startup.py"]
-
-[tool.setuptools]
-license-files = ["LICENSE"]
