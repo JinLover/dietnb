@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name            = "dietnb"
-version         = "0.1.7"
+version         = "0.2.0"
 description     = "Automatically save matplotlib figures to files and link them in Jupyter notebooks instead of embedding them."
 readme          = "README.md"
 license         = {text = "MIT"}
@@ -20,7 +20,10 @@ classifiers     = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
 ]
-dependencies    = ["ipython>=8", "matplotlib>=3.5", "notebook", "requests"]
+dependencies    = [
+    "ipython>=8",
+    "matplotlib>=3.5"
+]
 
 [project.scripts]
 dietnb = "dietnb._cli:main"         # Creates the 'dietnb' command
@@ -39,6 +42,8 @@ where = ["."]
 dev = [
     "pytest>=7.0",
     "pytest-mock>=3.10"
+    "qtconsole>=5.5",
+    "PyQt6"
 ]
 
 [tool.setuptools.package-data]
