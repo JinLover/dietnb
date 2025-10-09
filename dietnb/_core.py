@@ -1,8 +1,9 @@
+import hashlib
 import os
 import time
-import hashlib
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional, Set, Tuple
 
 # Removed imports for notebook and requests
 # import matplotlib.pyplot as plt # This should be kept
@@ -17,6 +18,14 @@ _state = {}  # Stores {cell_key: last_exec_count}
 _patch_applied = False
 
 DEFAULT_FOLDER_NAME = "dietnb_imgs"
+
+
+def _directory_key(directory: Path) -> str:
+    """Returns a stable string representation for directory lookups."""
+    try:
+        return str(directory.resolve(strict=False))
+    except OSError:
+        return str(directory)
 
 
 def _safe_relpath(path: Path, base: Path) -> Optional[str]:
@@ -94,6 +103,51 @@ def _resolve_notebook_path(ip_instance) -> Optional[Path]:
 
     return None
 
+
+@dataclass
+class _FigureRegistry:
+    """Tracks execution counts and per-cell figure indices."""
+
+    _last_exec_per_cell: Dict[Tuple[str, str], int] = field(default_factory=dict)
+    _indices: Dict[Tuple[str, str, int], int] = field(default_factory=dict)
+
+    def register(self, directory: Path, cell_key: str, exec_count: int) -> Tuple[int, bool]:
+        """Returns new index and whether this is a fresh execution for the cell."""
+        dir_key = _directory_key(directory)
+        state_key = (dir_key, cell_key)
+        counter_key = (dir_key, cell_key, exec_count)
+
+        last_exec = self._last_exec_per_cell.get(state_key)
+        if last_exec != exec_count:
+            self._last_exec_per_cell[state_key] = exec_count
+            self._indices[counter_key] = 1
+            self._drop_old_indices(dir_key, cell_key, exec_count)
+            return 1, True
+
+        next_idx = self._indices.get(counter_key, 1) + 1
+        self._indices[counter_key] = next_idx
+        return next_idx, False
+
+    def active_cell_keys(self, directory: Path) -> Set[str]:
+        """Returns all cell keys known for the provided directory."""
+        dir_key = _directory_key(directory)
+        return {
+            cell_key
+            for (stored_dir, cell_key), _ in self._last_exec_per_cell.items()
+            if stored_dir == dir_key
+        }
+
+    def _drop_old_indices(self, dir_key: str, cell_key: str, exec_count: int) -> None:
+        stale_keys = [
+            key for key in self._indices
+            if key[0] == dir_key and key[1] == cell_key and key[2] != exec_count
+        ]
+        for key in stale_keys:
+            del self._indices[key]
+
+
+_registry = _FigureRegistry()
+
 def _get_notebook_image_dir(ip_instance, base_folder_name=DEFAULT_FOLDER_NAME) -> Path:
     """Determines the target image directory.
     Priority:
@@ -148,7 +202,6 @@ def _get_cell_key(ip) -> str:
 
 def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[str]:
     """Saves the figure to a file and returns an HTML img tag."""
-    global _state
     if not ip:
         return None
 
@@ -156,40 +209,14 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     image_dir = _get_notebook_image_dir(ip)
 
     key = _get_cell_key(ip)
-    # Use execution_count if available, otherwise fallback (e.g., timestamp for uniqueness)
-    exec_count = getattr(ip, 'execution_count', None) or int(time.time())
+    # Use execution_count if available, otherwise fallback (timestamp for uniqueness)
+    exec_count = getattr(ip, "execution_count", None)
+    if exec_count is None:
+        exec_count = int(time.time() * 1000)
 
-
-    try:
-        # Ensure the target directory exists
-        image_dir.mkdir(parents=True, exist_ok=True)
-    except OSError:
-        return None # Indicate failure
-
-    # Use a tuple (directory, cell_key) for state to handle multiple notebooks
-    state_key = (str(image_dir), key)
-
-    # Clean up images from previous execution of the same cell *in the same directory*
-    if _state.get(state_key) != exec_count:
-        for old_file in image_dir.glob(f"*_*_{key}.png"):
-            try:
-                old_file.unlink()
-            except OSError:
-                pass # Fail silently if old file removal fails
-        _state[state_key] = exec_count
-        idx = 1
-    else:
-        # Increment index for multiple figures in the same cell execution
-        # The pattern must match the new filename format: {exec_count}_*_{key}.png
-        # We need to find the max index for the current exec_count and key
-        
-        # A more robust way to find the next index
-        existing_indices = [
-            int(f.stem.split('_')[1])
-            for f in image_dir.glob(f"{exec_count}_*_{key}.png")
-            if f.stem.split('_')[1].isdigit()
-        ]
-        idx = max(existing_indices) + 1 if existing_indices else 1
+    idx, is_new_exec = _registry.register(image_dir, key, exec_count)
+    if is_new_exec:
+        _delete_previous_cell_images(image_dir, key)
 
 
     # Filename format: {exec_count}_{fig_index}_{cell_key}.png
@@ -218,6 +245,17 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
 def _no_op_repr_png(fig: Figure):
     """Prevents the default PNG representation."""
     return None
+
+
+def _delete_previous_cell_images(image_dir: Path, cell_key: str) -> None:
+    """Removes images generated by prior executions of the same cell."""
+    pattern = f"*_*_{cell_key}.png"
+    for old_file in image_dir.glob(pattern):
+        try:
+            old_file.unlink()
+        except OSError:
+            # Best effort cleanup; ignore permission issues.
+            pass
 
 def _patch_figure_reprs(ip):
     """Applies the monkey-patches to the Figure class."""
