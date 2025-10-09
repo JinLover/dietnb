@@ -8,7 +8,7 @@ __pycache__/
 .venv/
 
 # test folder
-test/
+tests/
 
 # cursor
 .cursor/
