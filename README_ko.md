@@ -10,9 +10,9 @@
 ## 주요 기능
 
 *   **노트북 파일 크기 최소화:** `matplotlib` 그래프를 노트북 외부의 PNG 파일로 저장하여 `.ipynb` 파일의 용량 부담을 크게 줄여줍니다.
-*   **자동 이미지 폴더 관리:** 노트북 파일 위치를 기준으로 이미지 저장 폴더(`[NotebookFileName]_dietnb_imgs`)를 자동으로 생성하고 관리합니다. (VS Code 등의 환경에서 경로 감지 성공 시 적용되며, 실패 시 현재 작업 디렉토리에 `dietnb_imgs` 폴더를 사용합니다.)
-*   **자동 이미지 업데이트:** 노트북 셀을 다시 실행할 경우, 해당 셀에서 이전에 생성된 이미지 파일은 자동으로 삭제되어 항상 최신 결과물만 유지됩니다.
-*   **이미지 정리 기능:** `dietnb.clean_unused()` 함수를 통해 현재 세션에서 사용하지 않는 불필요한 이미지 파일을 쉽게 정리할 수 있습니다.
+*   **자동 이미지 폴더 관리:** 노트북 파일 위치를 기준으로 이미지 저장 폴더(`[NotebookFileName]_dietnb_imgs`)를 자동으로 생성하고 관리합니다. 노트북과 폴더를 함께 이동해도 `<img>` 태그는 상대 경로만 참조하므로 깨지지 않습니다. (경로 감지가 실패하면 현재 작업 디렉토리의 `dietnb_imgs` 폴더를 사용합니다.)
+*   **자동 이미지 업데이트:** 디렉토리·셀·실행 카운트를 추적하여 셀을 다시 실행하면 이전 PNG를 자동 삭제해 최신 결과만 남깁니다.
+*   **이미지 정리 기능:** `dietnb.clean_unused()` 함수가 레지스트리를 기준으로 현재 세션에서 참조하지 않는 이미지 파일을 정리합니다.
 *   **간편한 자동 활성화:** `dietnb install` 명령어를 통해 IPython 및 Jupyter 환경 시작 시 `dietnb`가 자동으로 활성화되도록 설정할 수 있습니다.
 
 ---
@@ -70,7 +70,7 @@ plt.legend()
 
 plt.show() # On show(), the image is saved to a file, and a link is displayed in the notebook.
 ```
-생성된 이미지는 노트북 파일과 동일한 경로의 `[NotebookFileName]_dietnb_imgs` 폴더 또는 `dietnb_imgs` 폴더에서 확인할 수 있습니다.
+생성된 이미지는 노트북 파일과 동일한 경로의 `[NotebookFileName]_dietnb_imgs` 폴더(상대 경로로 참조됨) 또는 `dietnb_imgs` 폴더에서 확인할 수 있습니다.
 
 ---
 

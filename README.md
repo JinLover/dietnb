@@ -11,9 +11,9 @@
 ## Key Features
 
 *   **Minimized Notebook Size:** Significantly reduces `.ipynb` file bulk by storing `matplotlib` figures as external PNG files.
-*   **Automatic Image Folder Management:** Creates and manages image storage directories (e.g., `[NotebookFileName]_dietnb_imgs`) relative to the notebook's location. (Applies when path detection is successful, e.g., in VS Code; defaults to `dietnb_imgs` in the current working directory if detection fails.)
-*   **Automatic Image Updates:** When a notebook cell is re-executed, image files generated from its previous run are automatically deleted, ensuring only the latest output is retained.
-*   **Image Cleanup Function:** The `dietnb.clean_unused()` function allows easy removal of unreferenced image files from the current session.
+*   **Automatic Image Folder Management:** Creates and manages image storage directories (e.g., `[NotebookFileName]_dietnb_imgs`) relative to the notebook's location. When you move the notebook and the folder together, the `<img>` tags continue to work because only relative paths are stored. If detection fails, the default `dietnb_imgs` folder in the working directory is used.
+*   **Automatic Image Updates:** Registers per-directory/per-cell execution counts to replace old PNGs when a cell reruns, preventing stale images from piling up.
+*   **Image Cleanup Function:** The `dietnb.clean_unused()` function consults the execution registry to remove unreferenced image files from the active session.
 *   **Simple Auto-Activation:** The `dietnb install` command configures `dietnb` to activate automatically when IPython and Jupyter environments start.
 
 ---
@@ -71,7 +71,7 @@ plt.legend()
 
 plt.show() # On show(), the image is saved to a file, and a link is displayed in the notebook.
 ```
-Generated images can be found in the `[NotebookFileName]_dietnb_imgs` folder alongside your notebook, or in the `dietnb_imgs` folder.
+Generated images can be found in the `[NotebookFileName]_dietnb_imgs` folder alongside your notebook (with relative links), or in the `dietnb_imgs` folder.
 
 ---
 
