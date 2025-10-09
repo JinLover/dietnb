@@ -7,9 +7,6 @@ __pycache__/
 # Environments
 .venv/
 
-# test folder
-tests/
-
 # cursor
 .cursor/
 
