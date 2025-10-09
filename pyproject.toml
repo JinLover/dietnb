@@ -41,7 +41,7 @@ where = ["."]
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
-    "pytest-mock>=3.10"
+    "pytest-mock>=3.10",
     "qtconsole>=5.5",
     "PyQt6"
 ]
