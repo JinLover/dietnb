@@ -1,8 +1,8 @@
+import os
+import time
 import hashlib
 from pathlib import Path
 from typing import Optional
-import time
-import os
 
 # Removed imports for notebook and requests
 # import matplotlib.pyplot as plt # This should be kept
@@ -13,11 +13,86 @@ import matplotlib.pyplot as plt
 from IPython import get_ipython
 from matplotlib.figure import Figure
 
-# Global state
 _state = {}  # Stores {cell_key: last_exec_count}
 _patch_applied = False
 
 DEFAULT_FOLDER_NAME = "dietnb_imgs"
+
+
+def _safe_relpath(path: Path, base: Path) -> Optional[str]:
+    """Returns a POSIX-style relative path if possible."""
+    try:
+        rel = path.relative_to(base)
+    except ValueError:
+        try:
+            rel = Path(os.path.relpath(path, base))
+        except ValueError:
+            return None
+    return rel.as_posix()
+
+
+def _img_src_relative_path(filepath: Path, notebook_path: Optional[Path]) -> str:
+    """Computes an image src suitable for HTML, preferring notebook-relative paths."""
+    if notebook_path:
+        base = notebook_path.parent
+        rel = _safe_relpath(filepath, base)
+        if rel:
+            return rel
+
+    rel_cwd = _safe_relpath(filepath, Path.cwd())
+    if rel_cwd:
+        return rel_cwd
+
+    return filepath.name
+
+
+def _normalize_notebook_path(candidate: Optional[str]) -> Optional[Path]:
+    """Normalizes notebook paths from various front-ends."""
+    if not isinstance(candidate, str):
+        return None
+
+    candidate = candidate.strip()
+    if not candidate:
+        return None
+
+    path = Path(candidate).expanduser()
+    try:
+        if not path.is_absolute():
+            path = (Path.cwd() / path).resolve(strict=False)
+        else:
+            path = path.resolve(strict=False)
+    except (OSError, RuntimeError):
+        return None
+
+    return path if path.suffix.lower() == ".ipynb" else None
+
+
+def _resolve_notebook_path(ip_instance) -> Optional[Path]:
+    """Attempts to deduce the active notebook path from IPython metadata."""
+    candidates = []
+
+    if ip_instance:
+        kernel = getattr(ip_instance, "kernel", None)
+        session = getattr(kernel, "session", None)
+        path_attr = getattr(session, "path", None)
+        if isinstance(path_attr, str):
+            candidates.append(path_attr)
+
+        if hasattr(ip_instance, "user_global_ns"):
+            vsc_path = ip_instance.user_global_ns.get("__vsc_ipynb_file__")
+            if isinstance(vsc_path, str):
+                candidates.append(vsc_path)
+
+    env_path = os.environ.get("JPY_SESSION_NAME")
+    if isinstance(env_path, str):
+        candidates.append(env_path)
+
+    for candidate in candidates:
+        normalized = _normalize_notebook_path(candidate)
+        if normalized:
+            return normalized
+
+    return None
 
 def _get_notebook_image_dir(ip_instance, base_folder_name=DEFAULT_FOLDER_NAME) -> Path:
     """Determines the target image directory.
@@ -25,52 +100,21 @@ def _get_notebook_image_dir(ip_instance, base_folder_name=DEFAULT_FOLDER_NAME) -
     1. Auto-detected notebook name.
     2. Default directory.
     """
-    default_dir_for_fallback = Path(os.getcwd()) / base_folder_name
-    notebook_path_str: Optional[str] = None
+    fallback_dir = Path.cwd() / base_folder_name
+    notebook_path = _resolve_notebook_path(ip_instance)
 
-    if ip_instance and hasattr(ip_instance, 'kernel') and ip_instance.kernel and \
-       hasattr(ip_instance.kernel, 'session') and ip_instance.kernel.session:
-        notebook_path_attr = getattr(ip_instance.kernel.session, 'path', None)
-        if isinstance(notebook_path_attr, str) and notebook_path_attr.strip():
-            notebook_path_str = notebook_path_attr.strip()
-
-    if not notebook_path_str and ip_instance and hasattr(ip_instance, 'user_global_ns'):
-        vsc_path = ip_instance.user_global_ns.get("__vsc_ipynb_file__")
-        if isinstance(vsc_path, str) and vsc_path.strip():
-            notebook_path_str = vsc_path.strip()
-
-    if not notebook_path_str:
-        jpy_session_name = os.environ.get("JPY_SESSION_NAME")
-        if isinstance(jpy_session_name, str) and jpy_session_name.strip():
-            potential_path = jpy_session_name.strip()
-            if not os.path.isabs(potential_path):
-                 potential_path = os.path.join(os.getcwd(), potential_path)
-            if os.path.isfile(potential_path) and potential_path.lower().endswith('.ipynb'):
-                 notebook_path_str = potential_path
-
-    if notebook_path_str:
-        try:
-            notebook_path = Path(notebook_path_str)
-            notebook_fname = notebook_path.name
-            notebook_name_without_ext, _ = os.path.splitext(notebook_fname)
-
-            if not notebook_name_without_ext:
-                 target_dir = default_dir_for_fallback
-            else:
-                 notebook_dir_name_part = f"{notebook_name_without_ext}_{base_folder_name}"
-                 target_dir_base = notebook_path.parent
-                 target_dir = target_dir_base / notebook_dir_name_part
-        except Exception:
-            target_dir = default_dir_for_fallback
+    if notebook_path:
+        notebook_dir_name_part = f"{notebook_path.stem}_{base_folder_name}" if notebook_path.stem else base_folder_name
+        target_dir = notebook_path.parent / notebook_dir_name_part
     else:
-        target_dir = default_dir_for_fallback
+        target_dir = fallback_dir
 
     try:
         target_dir.mkdir(parents=True, exist_ok=True)
         return target_dir
     except OSError:
-        default_dir_for_fallback.mkdir(parents=True, exist_ok=True)
-        return default_dir_for_fallback
+        fallback_dir.mkdir(parents=True, exist_ok=True)
+        return fallback_dir
 
 def _get_cell_key(ip) -> str:
     """Generates a unique key for the current cell execution."""
@@ -151,15 +195,14 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     # Filename format: {exec_count}_{fig_index}_{cell_key}.png
     filename = f"{exec_count}_{idx}_{key}.png"
     filepath = image_dir / filename
+    notebook_path = _resolve_notebook_path(ip)
 
     try:
         fig.savefig(filepath, dpi=dpi, bbox_inches="tight", format=fmt)
     except Exception:
         return None # Indicate failure
 
-    img_src_base = f"{image_dir.name}/{filename}"
-    
-    final_img_src = img_src_base # Default: no query string for web Jupyter as per user feedback
+    final_img_src = _img_src_relative_path(filepath, notebook_path)
 
     # Check if running in VS Code to add cache-busting query string specifically for it
     # ip is the IPython instance passed to _save_figure_and_get_html
@@ -167,7 +210,7 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
         vsc_notebook_file_path_str = ip.user_global_ns.get("__vsc_ipynb_file__")
         if vsc_notebook_file_path_str and isinstance(vsc_notebook_file_path_str, str):
             # It's VS Code, add query string for cache busting
-            final_img_src = f"{img_src_base}"
+            final_img_src = f"{final_img_src}"
     
     # No /files/ prefix
     return f'<img src="{final_img_src}" alt="{filename}" style="max-width:100%;">'
