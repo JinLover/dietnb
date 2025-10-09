@@ -7,7 +7,7 @@ name            = "dietnb"
 version         = "0.2.0"
 description     = "Automatically save matplotlib figures to files and link them in Jupyter notebooks instead of embedding them."
 readme          = "README.md"
-license         = {text = "MIT"}
+license         = "MIT"
 authors         = [{name = "JinLover"}]
 requires-python = ">=3.8"
 classifiers     = [
@@ -47,4 +47,7 @@ dev = [
 ]
 
 [tool.setuptools.package-data]
-dietnb = ["_startup.py"] 
+dietnb = ["_startup.py"]
+
+[tool.setuptools]
+license-files = ["LICENSE"]
