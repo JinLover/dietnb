@@ -14,9 +14,8 @@ import matplotlib.pyplot as plt
 from IPython import get_ipython
 from matplotlib.figure import Figure
 
-_state = {}  # Stores {cell_key: last_exec_count}
+# Global state
 _patch_applied = False
-
 DEFAULT_FOLDER_NAME = "dietnb_imgs"
 
 
@@ -26,6 +25,14 @@ def _directory_key(directory: Path) -> str:
         return str(directory.resolve(strict=False))
     except OSError:
         return str(directory)
+
+
+def _relative_to_cwd(path: Path) -> str:
+    """Formats a path relative to the current working directory when possible."""
+    try:
+        return str(path.relative_to(Path.cwd()))
+    except ValueError:
+        return str(path)
 
 
 def _safe_relpath(path: Path, base: Path) -> Optional[str]:
@@ -229,18 +236,18 @@ def _save_figure_and_get_html(fig: Figure, ip, fmt="png", dpi=150) -> Optional[s
     except Exception:
         return None # Indicate failure
 
-    final_img_src = _img_src_relative_path(filepath, notebook_path)
+    img_src = _img_src_relative_path(filepath, notebook_path)
 
     # Check if running in VS Code to add cache-busting query string specifically for it
     # ip is the IPython instance passed to _save_figure_and_get_html
     if ip and hasattr(ip, 'user_global_ns'):
         vsc_notebook_file_path_str = ip.user_global_ns.get("__vsc_ipynb_file__")
         if vsc_notebook_file_path_str and isinstance(vsc_notebook_file_path_str, str):
-            # It's VS Code, add query string for cache busting
-            final_img_src = f"{final_img_src}"
-    
+            # Placeholder: VS Code specific adjustments could be applied here if needed.
+            img_src = f"{img_src}"
+
     # No /files/ prefix
-    return f'<img src="{final_img_src}" alt="{filename}" style="max-width:100%;">'
+    return f'<img src="{img_src}" alt="{filename}" style="max-width:100%;">'
 
 def _no_op_repr_png(fig: Figure):
     """Prevents the default PNG representation."""
@@ -315,7 +322,6 @@ def _post_cell_cleanup_and_repatch(ip):
 
 def _clean_unused_images_logic() -> dict:
     """Deletes image files whose keys are not in the current state *for the current context*."""
-    global _state
     deleted_files = []
     failed_deletions = []
     kept_files = []
@@ -331,8 +337,7 @@ def _clean_unused_images_logic() -> dict:
         return {"deleted": [], "failed": [], "kept": [], "message": f"Image directory '{image_dir.name}' not found."}
 
     # Get keys relevant *only* to the current directory from the state
-    current_dir_str = str(image_dir)
-    current_keys_in_state = {cell_key for (dir_key, cell_key) in _state if dir_key == current_dir_str}
+    current_keys_in_state = _registry.active_cell_keys(image_dir)
 
     cleaned_count = 0
     failed_count = 0
@@ -347,23 +352,23 @@ def _clean_unused_images_logic() -> dict:
                 if key_part not in current_keys_in_state:
                     try:
                         img_file.unlink()
-                        deleted_files.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
+                        deleted_files.append(_relative_to_cwd(img_file))
                         cleaned_count += 1
                     except OSError:
-                        failed_deletions.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
+                        failed_deletions.append(_relative_to_cwd(img_file))
                         failed_count += 1
                 else:
-                    kept_files.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
+                    kept_files.append(_relative_to_cwd(img_file))
                     kept_count += 1
             else:
                 # Filename doesn't match expected format, keep it
-                kept_files.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
+                kept_files.append(_relative_to_cwd(img_file))
                 kept_count += 1
 
         except Exception:
             # Catch any other parsing errors and keep the file
-            failed_deletions.append(str(img_file.relative_to(Path.cwd()) if img_file.is_relative_to(Path.cwd()) else img_file))
+            failed_deletions.append(_relative_to_cwd(img_file))
             failed_count += 1
 
     message = f"Cleaned directory '{image_dir.name}'. Deleted: {cleaned_count}, Failed: {failed_count}, Kept: {kept_count}."
-    return {"deleted": deleted_files, "failed": failed_deletions, "kept": kept_files, "message": message} 
+    return {"deleted": deleted_files, "failed": failed_deletions, "kept": kept_files, "message": message}
