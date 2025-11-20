@@ -39,3 +39,11 @@ where = ["."]
 
 [tool.setuptools.package-data]
 dietnb = ["_startup.py"]
+
+[project.optional-dependencies]
+dev = [
+    "jupyter>=1.0",
+    "ipykernel>=6.0",
+    "pytest>=7.0",
+    "pytest-mock>=3.10"
+]
