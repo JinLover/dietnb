@@ -1,3 +1,7 @@
+[한국어 README (Korean README)](README_ko.md)
+
+---
+
 # `dietnb`
 
 [![PyPI version](https://badge.fury.io/py/dietnb.svg)](https://badge.fury.io/py/dietnb)
@@ -11,6 +15,7 @@
 ## Key Features
 
 *   **Minimized Notebook Size:** Significantly reduces `.ipynb` file bulk by storing `matplotlib` figures as external PNG files.
+*   **One-Click Image Copy:** Every plot includes an automatically added 📋 copy button for instant clipboard access.
 *   **Automatic Image Folder Management:** Creates and manages image storage directories (e.g., `[NotebookFileName]_dietnb_imgs`) relative to the notebook's location. When you move the notebook and the folder together, the `<img>` tags continue to work because only relative paths are stored. If detection fails, the default `dietnb_imgs` folder in the working directory is used.
 *   **Automatic Image Updates:** Registers per-directory/per-cell execution counts to replace old PNGs when a cell reruns, preventing stale images from piling up.
 *   **Image Cleanup Function:** The `dietnb.clean_unused()` function consults the execution registry to remove unreferenced image files from the active session.
@@ -89,6 +94,3 @@ dietnb.clean_unused()
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
-
----
-[한국어 README (Korean README)](README_ko.md) 

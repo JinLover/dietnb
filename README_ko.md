@@ -1,3 +1,7 @@
+[English README (영어 README)](README.md)
+
+---
+
 # **`dietnb`**
 
 [![PyPI version](https://badge.fury.io/py/dietnb.svg)](https://badge.fury.io/py/dietnb)
@@ -10,6 +14,7 @@
 ## 주요 기능
 
 *   **노트북 파일 크기 최소화:** `matplotlib` 그래프를 노트북 외부의 PNG 파일로 저장하여 `.ipynb` 파일의 용량 부담을 크게 줄여줍니다.
+*   **원클릭 이미지 복사:** 모든 그래프에 자동으로 추가되는 📋 복사 버튼으로 이미지를 클립보드에 즉시 복사할 수 있습니다.
 *   **자동 이미지 폴더 관리:** 노트북 파일 위치를 기준으로 이미지 저장 폴더(`[NotebookFileName]_dietnb_imgs`)를 자동으로 생성하고 관리합니다. 노트북과 폴더를 함께 이동해도 `<img>` 태그는 상대 경로만 참조하므로 깨지지 않습니다. (경로 감지가 실패하면 현재 작업 디렉토리의 `dietnb_imgs` 폴더를 사용합니다.)
 *   **자동 이미지 업데이트:** 디렉토리·셀·실행 카운트를 추적하여 셀을 다시 실행하면 이전 PNG를 자동 삭제해 최신 결과만 남깁니다.
 *   **이미지 정리 기능:** `dietnb.clean_unused()` 함수가 레지스트리를 기준으로 현재 세션에서 참조하지 않는 이미지 파일을 정리합니다.
@@ -88,6 +93,3 @@ dietnb.clean_unused()
 ## 라이선스
 
 MIT 라이선스를 따릅니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참고하세요.
-
----
-[English README (영어 README)](README.md) 
