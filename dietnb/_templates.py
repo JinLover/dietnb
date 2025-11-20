@@ -59,18 +59,34 @@ COPY_BUTTON_SCRIPT = """
 COPY_BUTTON_HTML = """
 <div class="dietnb-container" style="position: relative; display: inline-block; max-width: 100%;">
     <img src="{img_src}" alt="{filename}" class="dietnb-img" style="max-width: 100%; height: auto;">
-    <button class="dietnb-copy-btn" 
-            style="position: absolute; top: 8px; right: 8px; z-index: 10;
-                   background: rgba(255, 255, 255, 0.95); 
-                   border: 1px solid rgba(0, 0, 0, 0.2);
-                   border-radius: 4px; cursor: pointer; 
-                   padding: 4px 8px; font-size: 13px;
-                   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                   transition: all 0.2s;
-                   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
-            onmouseover="this.style.background='rgba(255,255,255,1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
-            onmouseout="this.style.background='rgba(255,255,255,0.95)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
-        📋
-    </button>
+    <div style="position: absolute; top: 8px; right: 8px; z-index: 10; display: flex; gap: 4px;">
+        <button class="dietnb-copy-btn" 
+                style="background: rgba(255, 255, 255, 0.95); 
+                       border: 1px solid rgba(0, 0, 0, 0.2);
+                       border-radius: 4px; cursor: pointer; 
+                       padding: 4px 8px; font-size: 13px;
+                       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                       transition: all 0.2s;
+                       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
+                onmouseover="this.style.background='rgba(255,255,255,1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+                onmouseout="this.style.background='rgba(255,255,255,0.95)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
+            📋
+        </button>
+        <a href="{img_src}" download="{filename}"
+           style="background: rgba(255, 255, 255, 0.95); 
+                  border: 1px solid rgba(0, 0, 0, 0.2);
+                  border-radius: 4px; cursor: pointer; 
+                  padding: 4px 8px; font-size: 13px;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                  transition: all 0.2s;
+                  text-decoration: none;
+                  display: inline-block;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
+           onmouseover="this.style.background='rgba(255,255,255,1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+           onmouseout="this.style.background='rgba(255,255,255,0.95)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';"
+           title="Download image">
+            💾
+        </a>
+    </div>
 </div>
 """
