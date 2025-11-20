@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [0.2.3] - 2025-11-20
+### Added
+- Download button (💾) next to copy button using `<a download>` tag
+  - In Jupyter: Downloads image to browser's default download folder
+  - In VS Code: Opens image in new browser tab
+
+### Changed
+- Refactored code structure by extracting JavaScript/HTML templates to `_templates.py` module
+
 ### [0.2.2] - 2025-11-20
 ### Added
 - JavaScript-based copy button overlay on all matplotlib images for one-click clipboard copy functionality
