@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "dietnb"
+version         = "0.2.3"
+description     = "Automatically save matplotlib figures to files and link them in Jupyter notebooks instead of embedding them."
+readme          = { file = "README.md", content-type = "text/markdown" }
+license         = { file = "LICENSE" }
+authors         = [{ name = "JinLover" }]
+requires-python = ">=3.8"
+classifiers     = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Framework :: IPython",
+    "Framework :: Jupyter",
+    "Topic :: Utilities",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+]
+dependencies    = [
+    "ipython>=8",
+    "matplotlib>=3.5"
+]
+
+[project.scripts]
+dietnb = "dietnb._cli:main"
+
+[project.urls]
+Homepage = "https://github.com/JinLover/dietnb"
+"Bug Tracker" = "https://github.com/JinLover/dietnb/issues"
+
+[tool.setuptools]
+license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dietnb*"]
+
+[tool.setuptools.package-data]
+dietnb = ["_startup.py"]
+
+[project.optional-dependencies]
+dev = [
+    "jupyter>=1.0",
+    "ipykernel>=6.0",
+    "pytest>=7.0",
+    "pytest-mock>=3.10"
+]
