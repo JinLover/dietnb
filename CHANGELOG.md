@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [0.2.2] - 2025-11-20
+### Added
+- JavaScript-based copy button overlay on all matplotlib images for one-click clipboard copy functionality
+- Optional development dependencies (`jupyter`, `ipykernel`, `pytest`) via `[project.optional-dependencies]`
+
+### Changed
+- Removed unnecessary `uv` workspace configuration from `pyproject.toml`
+
 ### [0.2.1] - 2025-10-10
 ### Fixed
 - Fix `dietnb install` not working bug.
