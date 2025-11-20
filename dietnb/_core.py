@@ -163,11 +163,13 @@ def _get_notebook_image_dir(ip_instance, base_folder_name=DEFAULT_FOLDER_NAME) -
     1. Auto-detected notebook name.
     2. Default directory.
     """
-    fallback_dir = Path.cwd() / f".{base_folder_name}"
+
+    # if set img directory as hidden, jupyter notebook can't read img
+    fallback_dir = Path.cwd() / f"{base_folder_name}"
     notebook_path = _resolve_notebook_path(ip_instance)
 
     if notebook_path:
-        notebook_dir_name_part = f".{notebook_path.stem}_{base_folder_name}" if notebook_path.stem else f".{base_folder_name}"
+        notebook_dir_name_part = f"{notebook_path.stem}_{base_folder_name}" if notebook_path.stem else f".{base_folder_name}"
         target_dir = notebook_path.parent / notebook_dir_name_part
     else:
         target_dir = fallback_dir
