@@ -3,18 +3,18 @@ name = "dietnb-workspace"
 version = "0.2.3"
 requires-python = ">=3.8"
 description = "Development workspace for dietnb"
-dependencies = ["dietnb"]
+dependencies = [
+    "dietnb",
+    "build>=1.0",
+    "twine>=5.0",
+    "pytest>=7.0",
+    "pytest-mock>=3.10",
+    "jupyter>=1.0",
+    "ipykernel>=6.0"
+]
 
 [tool.uv.workspace]
 members = ["src/dietnb"]
 
 [tool.uv.sources]
 dietnb = { workspace = true }
-
-[project.optional-dependencies]
-dev = [
-    "build>=1.0",
-    "twine>=5.0",
-    "pytest>=7.0",
-    "pytest-mock>=3.10"
-]
